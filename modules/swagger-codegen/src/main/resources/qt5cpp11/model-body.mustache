@@ -1,0 +1,93 @@
+{{>licenseInfo}}
+{{#models}}{{#model}}
+#include "{{classname}}.h"
+
+#include "SWGHelpers.h"
+
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QObject>
+#include <QDebug>
+
+namespace Swagger {
+
+
+{{classname}}::{{classname}}()
+:{{#vars}} m_{{name}}({{defaultValue}}){{#hasMore}},{{/hasMore}}
+{{/vars}}
+{
+}
+
+{{classname}}::~{{classname}}()
+{
+    {{#vars}}
+    {{#vendorExtensions.x-codegen-isPointer}}
+    delete m_{{name}};
+    {{/vendorExtensions.x-codegen-isPointer}}
+    {{/vars}}
+}
+
+QJsonObject {{classname}}::toJson() const
+{
+    QJsonObject jsonObject;
+    {{#vars}}
+    {{#vendorExtensions.x-codegen-isPointer}}
+    if (m_{{name}}) {
+        jsonObject.insert("{{name}}", m_{{name}}->toJson());
+    }
+    {{/vendorExtensions.x-codegen-isPointer}}
+    {{^vendorExtensions.x-codegen-isPointer}}
+    jsonObject.insert("{{name}}", m_{{name}});
+    {{/vendorExtensions.x-codegen-isPointer}}
+    {{/vars}}
+
+    return jsonObject;
+}
+
+{{classname}} *{{classname}}::fromJson(const QJsonObject &json)
+{
+    if (!json.isObject()) {
+        return nullptr;
+    }
+
+    {{classname}} *p = new {{classname}}();
+
+    {{#vars}}
+    {{#vendorExtensions.x-codegen-isPointer}}
+    p->{{setter}}({{baseType}}::fromJson(json.toObject("{{name}}")));
+    {{/vendorExtensions.x-codegen-isPointer}}
+    {{^vendorExtensions.x-codegen-isPointer}}
+    {{#isContainer}}
+    {
+        {{baseType}}<{{complexType}}> list;
+        for (QJsonValue value : json.toArray("{{name}}")) {
+            list << value.toString();
+        }
+        p->{{setter}}(list);
+    }
+    {{/isContainer}}
+    {{^isContainer}}
+    p->{{setter}}(json.toString("{{name}}"));
+    {{/isContainer}}
+    {{/vendorExtensions.x-codegen-isPointer}}
+    {{/vars}}
+
+    return p;
+}
+
+{{#vars}}
+{{{datatype}}} {{classname}}::{{name}}() {
+    return m_{{name}};
+}
+
+void {{classname}}::{{setter}}({{{datatype}}} {{name}}) {
+    m_{{name}} = {{name}};
+}
+
+{{/vars}}
+
+
+} /* namespace Swagger */
+
+{{/model}}
+{{/models}}

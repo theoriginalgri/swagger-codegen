@@ -1,0 +1,47 @@
+{{>licenseInfo}}
+{{#models}}{{#model}}/*
+ * {{classname}}.h
+ * 
+ * {{description}}
+ */
+
+#ifndef {{classname}}_H_
+#define {{classname}}_H_
+
+{{/model}}{{/models}}
+{{#imports}}{{{import}}}
+{{/imports}}
+
+#include "SWGObject.h"
+
+#include <QJsonObject>
+
+{{#models}}{{#model}}
+namespace Swagger {
+
+class {{classname}} : public SWGObject
+{
+public:
+    {{classname}}();
+    ~{{classname}}();
+
+    QJsonObject toJson() const;
+
+    static {{classname}} *fromJson(const QJsonObject &json);
+
+    {{#vars}}
+    {{{datatype}}} {{name}}() const;
+    void {{setter}}({{{datatype}}} {{name}});
+
+    {{/vars}}
+private:
+    {{#vars}}
+    {{{baseType}}}{{#isContainer}}<{{complexType}}{{#vendorExtensions.x-codegen-inner-isPointer}} *{{/vendorExtensions.x-codegen-inner-isPointer}}>{{/isContainer}} {{#vendorExtensions.x-codegen-isPointer}}*{{/vendorExtensions.x-codegen-isPointer}}m_{{name}};
+    {{/vars}}
+};
+
+} /* namespace Swagger */
+
+#endif /* {{classname}}_H_ */
+{{/model}}
+{{/models}}
