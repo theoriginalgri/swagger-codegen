@@ -2,8 +2,6 @@
 {{#models}}{{#model}}
 #include "{{classname}}.h"
 
-#include "SWGHelpers.h"
-
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QObject>
@@ -24,6 +22,11 @@ namespace Swagger {
     {{#vendorExtensions.x-codegen-isPointer}}
     delete m_{{name}};
     {{/vendorExtensions.x-codegen-isPointer}}
+    {{#isContainer}}
+    {{#vendorExtensions.x-codegen-inner-isPointer}}
+    qDeleteAll(m_{{name}});
+    {{/vendorExtensions.x-codegen-inner-isPointer}}
+    {{/isContainer}}
     {{/vars}}
 }
 
@@ -37,7 +40,23 @@ QJsonObject {{classname}}::toJson() const
     }
     {{/vendorExtensions.x-codegen-isPointer}}
     {{^vendorExtensions.x-codegen-isPointer}}
+    {{#isContainer}}
+    {
+        QJsonArray array;
+        for({{complexType}}{{#vendorExtensions.x-codegen-inner-isPointer}}*{{/vendorExtensions.x-codegen-inner-isPointer}} item : m_{{name}}) {
+            {{#vendorExtensions.x-codegen-inner-isPointer}}
+            array.append(item->toJson());
+            {{/vendorExtensions.x-codegen-inner-isPointer}}
+            {{^vendorExtensions.x-codegen-inner-isPointer}}
+            array.append(item);
+            {{/vendorExtensions.x-codegen-inner-isPointer}}
+        }
+        jsonObject.insert("{{name}}", array);
+    }
+    {{/isContainer}}
+    {{^isContainer}}
     jsonObject.insert("{{name}}", m_{{name}});
+    {{/isContainer}}
     {{/vendorExtensions.x-codegen-isPointer}}
     {{/vars}}
 
@@ -50,7 +69,7 @@ QJsonObject {{classname}}::toJson() const
         return nullptr;
     }
 
-    {{classname}} *p = new {{classname}}();
+    {{classname}} *p = new {{classname}};
 
     {{#vars}}
     {{#vendorExtensions.x-codegen-isPointer}}
@@ -59,15 +78,20 @@ QJsonObject {{classname}}::toJson() const
     {{^vendorExtensions.x-codegen-isPointer}}
     {{#isContainer}}
     {
-        {{baseType}}<{{complexType}}> list;
+        {{baseType}}<{{complexType}}{{#vendorExtensions.x-codegen-inner-isPointer}} *{{/vendorExtensions.x-codegen-inner-isPointer}}> list;
         for (QJsonValue value : json.toArray("{{name}}")) {
-            list << value.toString();
+        {{#vendorExtensions.x-codegen-inner-isPointer}}
+            list << {{complexType}}::fromJson(value.toObject());
+        {{/vendorExtensions.x-codegen-inner-isPointer}}
+        {{^vendorExtensions.x-codegen-inner-isPointer}}
+            list << value.{{vendorExtensions.x-codegen-inner-conversionFunction}}();
+        {{/vendorExtensions.x-codegen-inner-isPointer}}
         }
         p->{{setter}}(list);
     }
     {{/isContainer}}
     {{^isContainer}}
-    p->{{setter}}(json.toString("{{name}}"));
+    p->{{setter}}(json.{{vendorExtensions.x-codegen-conversionFunction}}("{{name}}"));
     {{/isContainer}}
     {{/vendorExtensions.x-codegen-isPointer}}
     {{/vars}}
@@ -76,7 +100,7 @@ QJsonObject {{classname}}::toJson() const
 }
 
 {{#vars}}
-{{{datatype}}} {{classname}}::{{name}}() {
+{{{datatype}}} {{classname}}::{{name}}() const {
     return m_{{name}};
 }
 

@@ -21,7 +21,7 @@ public class Qt5CPP11Generator extends DefaultCodegen implements CodegenConfig {
         super();
 
         // set the output folder here
-        outputFolder = "generated-code/qt5cpp";
+        outputFolder = "generated-code/qt5cpp11";
 
         /*
          * Models.  You can write model files using the modelTemplateFiles map.
@@ -85,8 +85,8 @@ public class Qt5CPP11Generator extends DefaultCodegen implements CodegenConfig {
                         "double")
         );
 
-        supportingFiles.add(new SupportingFile("helpers-header.mustache", sourceFolder, PREFIX + "Helpers.h"));
-        supportingFiles.add(new SupportingFile("helpers-body.mustache", sourceFolder, PREFIX + "Helpers.cpp"));
+        //supportingFiles.add(new SupportingFile("helpers-header.mustache", sourceFolder, PREFIX + "Helpers.h"));
+        //supportingFiles.add(new SupportingFile("helpers-body.mustache", sourceFolder, PREFIX + "Helpers.cpp"));
         supportingFiles.add(new SupportingFile("HttpRequest.h.mustache", sourceFolder, PREFIX + "HttpRequest.h"));
         supportingFiles.add(new SupportingFile("HttpRequest.cpp.mustache", sourceFolder, PREFIX + "HttpRequest.cpp"));
         supportingFiles.add(new SupportingFile("modelFactory.mustache", sourceFolder, PREFIX + "ModelFactory.h"));
@@ -180,6 +180,40 @@ public class Qt5CPP11Generator extends DefaultCodegen implements CodegenConfig {
         return "#include \"" + name + ".h\"";
     }
 
+    private String getConversionFunction(Property p) {
+        String conversionFunction = null;
+
+        if (p instanceof StringProperty) {
+            conversionFunction = "toString";
+        } else if (p instanceof BooleanProperty) {
+            conversionFunction = "toBool";
+        } else if (p instanceof DateProperty) {
+            conversionFunction = "toDateTime";
+        } else if (p instanceof DateTimeProperty) {
+            conversionFunction = "toDateTime";
+        } else if (p instanceof DoubleProperty) {
+            conversionFunction = "toNumber";
+        } else if (p instanceof FloatProperty) {
+            conversionFunction = "toNumber";
+        } else if (p instanceof IntegerProperty) {
+            conversionFunction = "toInt";
+        } else if (p instanceof LongProperty) {
+            conversionFunction = "toInt";
+        } else if (p instanceof BaseIntegerProperty) {
+            // catchall for any other format of the swagger specifiction
+            // integer type not explicitly handled above
+            conversionFunction = "toInt";
+        } else if (p instanceof DecimalProperty) {
+            conversionFunction = "toNumber";
+        } else if (p instanceof MapProperty) {
+            conversionFunction = "toObject";
+        } else if (p instanceof ArrayProperty) {
+            conversionFunction = "toArray";
+        }
+
+        return conversionFunction;
+    }
+
     @Override
     public CodegenProperty fromProperty(String name, Property p) {
         CodegenProperty property = super.fromProperty(name, p);
@@ -187,6 +221,11 @@ public class Qt5CPP11Generator extends DefaultCodegen implements CodegenConfig {
 
         if (!copyableTypes.contains(type)) {
             property.vendorExtensions.put("x-codegen-isPointer", true);
+        } else {
+            String conversionFunction = getConversionFunction(p);
+            if (conversionFunction != null) {
+                property.vendorExtensions.put("x-codegen-conversionFunction", conversionFunction);
+            }
         }
 
         if (p instanceof ArrayProperty) {
@@ -195,6 +234,11 @@ public class Qt5CPP11Generator extends DefaultCodegen implements CodegenConfig {
 
             if (!copyableTypes.contains(getSwaggerType(inner))) {
                 property.vendorExtensions.put("x-codegen-inner-isPointer", true);
+            } else {
+                String conversionFunction = getConversionFunction(inner);
+                if (conversionFunction != null) {
+                    property.vendorExtensions.put("x-codegen-inner-conversionFunction", conversionFunction);
+                }
             }
         }
 
