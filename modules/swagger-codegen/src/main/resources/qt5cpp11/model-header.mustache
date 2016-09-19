@@ -19,25 +19,72 @@
 {{#models}}{{#model}}
 namespace Swagger {
 
+{{#generateQObjects}}
+class {{classname}} : public QObject
+{
+    Q_OBJECT
+    {{#vars}}
+    {{^isContainer}}
+    Q_PROPERTY({{baseType}} {{#vendorExtensions.x-codegen-isPointer}}*{{/vendorExtensions.x-codegen-isPointer}}{{name}} READ {{name}} WRITE {{setter}} NOTIFY {{name}}Changed)
+    {{/isContainer}}
+    {{#isContainer}}
+    {{#vendorExtensions.x-codegen-inner-isPointer}}
+    Q_PROPERTY(QQmlListProperty<{{complexType}}> {{name}} READ qml{{name}} NOTIFY {{name}}Changed)
+    {{/vendorExtensions.x-codegen-inner-isPointer}}
+    {{^vendorExtensions.x-codegen-inner-isPointer}}
+    Q_PROPERTY(QList<{{complexType}}> {{name}} READ {{name}} WRITE {{setter}} NOTIFY {{name}}Changed)
+    {{/vendorExtensions.x-codegen-inner-isPointer}}
+    {{/isContainer}}
+    {{/vars}}
+
+public:
+    {{classname}}(QObject *parent = nullptr);
+{{/generateQObjects}}
+{{^generateQObjects}}
 class {{classname}}
 {
 public:
     {{classname}}();
+{{/generateQObjects}}
     ~{{classname}}();
 
     QJsonObject toJson() const;
 
+    {{#generateQObjects}}
+    static {{classname}} *fromJson(const QJsonObject &json, QObject *parent = nullptr);
+    {{/generateQObjects}}
+    {{^generateQObjects}}
     static {{classname}} *fromJson(const QJsonObject &json);
+    {{/generateQObjects}}
 
     {{#vars}}
     {{{datatype}}} {{name}}() const;
     void {{setter}}({{{datatype}}} {{name}});
 
     {{/vars}}
+    {{#generateQObjects}}
+signals:
+    {{#vars}}
+    void {{name}}Changed({{{datatype}}} {{name}});
+    {{/vars}}
+
+    {{/generateQObjects}}
 private:
     {{#vars}}
     {{{baseType}}}{{#isContainer}}<{{complexType}}{{#vendorExtensions.x-codegen-inner-isPointer}} *{{/vendorExtensions.x-codegen-inner-isPointer}}>{{/isContainer}} {{#vendorExtensions.x-codegen-isPointer}}*{{/vendorExtensions.x-codegen-isPointer}}m_{{name}};
     {{/vars}}
+
+    {{#generateQObjects}}
+    {{#vars}}
+    {{#isContainer}}
+    {{#vendorExtensions.x-codegen-inner-isPointer}}
+    inline static int {{name}}_count(QQmlListProperty<{{complexType}}> *property) {
+        return qobject_cast<{{classname}} *>(property->object)->m_{{name}}.size();
+    }
+    {{/vendorExtensions.x-codegen-inner-isPointer}}
+    {{/isContainer}}
+    {{/vars}}
+    {{/generateQObjects}}
 };
 
 } /* namespace Swagger */

@@ -9,15 +9,54 @@
 
 namespace Swagger {
 
+template<bool>
+struct ToJsonImpl;
 
+template <>
+struct ToJsonImpl<0> {
+    template <typename T>
+    static QJsonValue toJson(const T& value) {
+        return value;
+    }
+};
+
+template <>
+struct ToJsonImpl<1> {
+    template <typename T>
+    static QJsonValue toJson(const T& value) {
+        return value.toJson();
+    }
+};
+
+template <typename T>
+QJsonArray toJsonArray(const QList<T> &list)
+{
+    QJsonArray array;
+
+    for(const T &item : list) {
+        array.append(ToJsonImpl<QTypeInfo<T>::isComplex>::template toJson<T>(value));
+    }
+
+    return array;
+}
+
+{{#generateQObjects}}
+{{classname}}::{{classname}}(QObject *parent)
+: QObject(parent)
+{{#vars}}, m_{{name}}({{defaultValue}})
+{{/vars}}
+{{/generateQObjects}}
+{{^generateQObjects}}
 {{classname}}::{{classname}}()
 :{{#vars}} m_{{name}}({{defaultValue}}){{#hasMore}},{{/hasMore}}
 {{/vars}}
+{{/generateQObjects}}
 {
 }
 
 {{classname}}::~{{classname}}()
 {
+    {{^generateQObjects}}
     {{#vars}}
     {{#vendorExtensions.x-codegen-isPointer}}
     delete m_{{name}};
@@ -28,6 +67,7 @@ namespace Swagger {
     {{/vendorExtensions.x-codegen-inner-isPointer}}
     {{/isContainer}}
     {{/vars}}
+    {{/generateQObjects}}
 }
 
 QJsonObject {{classname}}::toJson() const
@@ -41,18 +81,7 @@ QJsonObject {{classname}}::toJson() const
     {{/vendorExtensions.x-codegen-isPointer}}
     {{^vendorExtensions.x-codegen-isPointer}}
     {{#isContainer}}
-    {
-        QJsonArray array;
-        for({{complexType}}{{#vendorExtensions.x-codegen-inner-isPointer}}*{{/vendorExtensions.x-codegen-inner-isPointer}} item : m_{{name}}) {
-            {{#vendorExtensions.x-codegen-inner-isPointer}}
-            array.append(item->toJson());
-            {{/vendorExtensions.x-codegen-inner-isPointer}}
-            {{^vendorExtensions.x-codegen-inner-isPointer}}
-            array.append(item);
-            {{/vendorExtensions.x-codegen-inner-isPointer}}
-        }
-        jsonObject.insert("{{name}}", array);
-    }
+    jsonObject.insert("{{name}}", toJsonArray(m_{{name}}));
     {{/isContainer}}
     {{^isContainer}}
     jsonObject.insert("{{name}}", m_{{name}});
@@ -63,13 +92,23 @@ QJsonObject {{classname}}::toJson() const
     return jsonObject;
 }
 
+{{#generateQObjects}}
+{{classname}} *{{classname}}::fromJson(const QJsonObject &json, QObject *parent)
+{{/generateQObjects}}
+{{^generateQObjects}}
 {{classname}} *{{classname}}::fromJson(const QJsonObject &json)
+{{/generateQObjects}}
 {
     if (!json.isObject()) {
         return nullptr;
     }
 
+    {{#generateQObjects}}
+    {{classname}} *p = new {{classname}}(parent);
+    {{/generateQObjects}}
+    {{^generateQObjects}}
     {{classname}} *p = new {{classname}};
+    {{/generateQObjects}}
 
     {{#vars}}
     {{#vendorExtensions.x-codegen-isPointer}}
@@ -81,7 +120,12 @@ QJsonObject {{classname}}::toJson() const
         {{baseType}}<{{complexType}}{{#vendorExtensions.x-codegen-inner-isPointer}} *{{/vendorExtensions.x-codegen-inner-isPointer}}> list;
         for (QJsonValue value : json.toArray("{{name}}")) {
         {{#vendorExtensions.x-codegen-inner-isPointer}}
+            {{#generateQObjects}}
+            list << {{complexType}}::fromJson(value.toObject(), parent);
+            {{/generateQObjects}}
+            {{^generateQObjects}}
             list << {{complexType}}::fromJson(value.toObject());
+            {{/generateQObjects}}
         {{/vendorExtensions.x-codegen-inner-isPointer}}
         {{^vendorExtensions.x-codegen-inner-isPointer}}
             list << value.{{vendorExtensions.x-codegen-inner-conversionFunction}}();
@@ -105,11 +149,18 @@ QJsonObject {{classname}}::toJson() const
 }
 
 void {{classname}}::{{setter}}({{{datatype}}} {{name}}) {
+    if (m_{{name}} == {{name}}) {
+        return;
+    }
+
     m_{{name}} = {{name}};
+
+{{#generateQObjects}}
+    emit {{name}}Changed({{name}});
+{{/generateQObjects}}
 }
 
 {{/vars}}
-
 
 } /* namespace Swagger */
 

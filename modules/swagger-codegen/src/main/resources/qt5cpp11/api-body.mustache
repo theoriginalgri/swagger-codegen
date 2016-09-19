@@ -7,38 +7,42 @@
 #include <QJsonDocument>
 
 namespace Swagger {
-{{classname}}::{{classname}}() {}
 
-{{classname}}::~{{classname}}() {}
+{{classname}}::{{classname}}(QObject *parent)
+: QObject(parent)
+{
+}
 
-{{classname}}::{{classname}}(QString host, QString basePath) {
-    this->host = host;
-    this->basePath = basePath;
+{{classname}}::{{classname}}(const QUrl &url, QObject *parent)
+: QObject(parent)
+, m_url(url)
+, m_networkAccessManager(nullptr)
+{
+}
+
+{{classname}}::~{{classname}}()
+{
 }
 
 {{#operations}}
 {{#operation}}
 void
 {{classname}}::{{nickname}}({{#allParams}}{{{dataType}}} {{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}}) {
-    QString fullPath;
-    fullPath.append(this->host).append(this->basePath).append("{{path}}");
+    QUrl url(m_url);
+    QString fullPath = url.path() + "{{path}}";
 
     {{#pathParams}}
-    QString {{paramName}}PathParam("{"); {{paramName}}PathParam.append("{{paramName}}").append("}");
-    fullPath.replace({{paramName}}PathParam, stringValue({{paramName}}));
+    {{=<% %>=}}
+    fullPath.replace("{<%paramName%>}", QVariant::fromValue(<%paramName%>).toString());
+    <%={{ }}=%>
     {{/pathParams}}
 
+    QUrlQuery query(url);
     {{#queryParams}}
     {{^collectionFormat}}
-    if (fullPath.indexOf("?") > 0) 
-      fullPath.append("&");
-    else 
-      fullPath.append("?");
-    fullPath.append(QUrl::toPercentEncoding("{{paramName}}"))
-        .append("=")
-        .append(QUrl::toPercentEncoding(stringValue({{paramName}})));
+    query.addQueryParam("{{paramName}}", QVariant::fromValue({{paramName}}).toString());
     {{/collectionFormat}}
-
+    url.setQuery(query);
     {{#collectionFormat}}
 
     if ({{{paramName}}}->size() > 0) {

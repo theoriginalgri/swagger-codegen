@@ -8,6 +8,9 @@ import java.util.*;
 
 public class Qt5CPP11Generator extends DefaultCodegen implements CodegenConfig {
     protected final String PREFIX = "SWG";
+
+    public static final String GENERATE_QOBJECTS = "generateQObjects";
+
     protected Set<String> foundationClasses = new HashSet<String>();
     // source folder where to write the files
     protected String sourceFolder = "client";
@@ -16,6 +19,9 @@ public class Qt5CPP11Generator extends DefaultCodegen implements CodegenConfig {
     protected Set<String> systemIncludes = new HashSet<String>();
 
     protected Set<String> copyableTypes = new HashSet<>();
+
+    protected boolean generateQObjects = false;
+
 
     public Qt5CPP11Generator() {
         super();
@@ -54,7 +60,7 @@ public class Qt5CPP11Generator extends DefaultCodegen implements CodegenConfig {
          * Template Location.  This is the location which templates will be read from.  The generator
          * will use the resource stream to attempt to read the templates.
          */
-        embeddedTemplateDir = templateDir = "qt5cpp";
+        embeddedTemplateDir = templateDir = "qt5cpp11";
 
         /*
          * Reserved words.  Override this with reserved words specific to your language
@@ -135,6 +141,21 @@ public class Qt5CPP11Generator extends DefaultCodegen implements CodegenConfig {
         systemIncludes.add("QDate");
         systemIncludes.add("QDateTime");
         systemIncludes.add("QByteArray");
+
+        // Prepare commandline parameters
+        cliOptions.add(new CliOption(GENERATE_QOBJECTS, "Generate QObject-derived classes").
+                defaultValue(Boolean.TRUE.toString()));
+    }
+
+    @Override
+    public void processOpts() {
+        super.processOpts();
+
+        if (additionalProperties.containsKey(GENERATE_QOBJECTS)) {
+            generateQObjects = Boolean.valueOf(additionalProperties.get(GENERATE_QOBJECTS).toString());
+
+            additionalProperties.put("generateQObjects", generateQObjects);
+        }
     }
 
     /**

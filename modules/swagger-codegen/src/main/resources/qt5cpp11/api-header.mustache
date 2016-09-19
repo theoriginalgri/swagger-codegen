@@ -11,26 +11,38 @@
 
 namespace Swagger {
 
-class {{classname}}: public QObject
+class {{classname}} : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(QUrl url READ url WRITE setUrl NOTIFY urlChanged)
 
 public:
     {{classname}}(QObject *parent = nullptr);
-    {{classname}}(const QString &host, const QString &basePath, QObject *parent = nullptr);
+    {{classname}}(const QUrl &url, QObject *parent = nullptr);
     ~{{classname}}();
 
-    QString host;
-    QString basePath;
+    void setUrl(const QUrl &url);
+    QUrl url() const;
 
-    {{#operations}}{{#operation}}void {{nickname}}({{#allParams}}{{{dataType}}} {{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}});
+    void setNetworkAccessManager(QNetworkAccessManager *networkAccessManager);
+    QNetworkAccessManager *networkAccessManager() const;
+
+    // Operations
+    {{#operations}}{{#operation}}void {{nickname}}({{#allParams}}{{{dataType}}} {{#vendorExtensions.x-codegen-isPointer}}*{{/vendorExtensions.x-codegen-isPointer}}{{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}});
     {{/operation}}{{/operations}}
 signals:
     {{#operations}}{{#operation}}void {{nickname}}Signal({{#returnType}}{{{returnType}}} summary{{/returnType}});
     {{/operation}}{{/operations}}
+    void urlChanged(const QUrl &url);
+
 private:
     {{#operations}}{{#operation}}void {{nickname}}Callback (HttpRequestWorker *worker);
     {{/operation}}{{/operations}}
+
+private:
+    QUrl m_url;
+    QNetworkAccessManager *m_networkAccessManager;
 };
+
 }
 #endif
