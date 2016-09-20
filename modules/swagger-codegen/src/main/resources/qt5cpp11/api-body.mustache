@@ -8,8 +8,35 @@
 
 namespace Swagger {
 
+static QHash<QString, QLatin1Char> collectionFormatDelimiters {
+    { "csv", QLatin1Char(',') },
+    { "tsv", QLatin1Char('\t') },
+    { "ssv", QLatin1Char(' ') },
+    { "pipes", QLatin1Char('|') },
+};
+
+template <typename T>
+static QString formatCollectionParameter(const QList<T> &list, const QString &collectionFormat) {
+    const QString delimiter = collectionFormatDelimiters.value(collectionFormat);
+
+    QString value;
+    QTextStream s(&value);
+
+    QListIterator<T> iter(list);
+    while (iter.hasNext()) {
+        s << iter.next();
+
+        if (iter.hasNext()) {
+            s << delimiter;
+        }
+    }
+
+    return value;
+}
+
 {{classname}}::{{classname}}(QObject *parent)
 : QObject(parent)
+, m_networkAccessManager(nullptr)
 {
 }
 
@@ -26,8 +53,7 @@ namespace Swagger {
 
 {{#operations}}
 {{#operation}}
-void
-{{classname}}::{{nickname}}({{#allParams}}{{{dataType}}} {{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}}) {
+void {{classname}}::{{nickname}}({{#allParams}}{{{dataType}}} {{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}}) {
     QUrl url(m_url);
     QString fullPath = url.path() + "{{path}}";
 
@@ -42,15 +68,16 @@ void
     {{^collectionFormat}}
     query.addQueryParam("{{paramName}}", QVariant::fromValue({{paramName}}).toString());
     {{/collectionFormat}}
-    url.setQuery(query);
     {{#collectionFormat}}
+
+    query.addQueryParam("{{paramName}}", formatCollectionParameter({{paramName}}, {{collectionFormat}}));
 
     if ({{{paramName}}}->size() > 0) {
       if (QString("{{collectionFormat}}").indexOf("multi") == 0) {
         foreach({{{baseType}}} t, *{{paramName}}) {
           if (fullPath.indexOf("?") > 0)
             fullPath.append("&");
-          else 
+          else
             fullPath.append("?");
           fullPath.append("{{{paramName}}}=").append(stringValue(t));
         }
@@ -58,7 +85,7 @@ void
       else if (QString("{{collectionFormat}}").indexOf("ssv") == 0) {
         if (fullPath.indexOf("?") > 0)
           fullPath.append("&");
-        else 
+        else
           fullPath.append("?");
         fullPath.append("{{paramName}}=");
         qint32 count = 0;
@@ -72,7 +99,7 @@ void
       else if (QString("{{collectionFormat}}").indexOf("tsv") == 0) {
         if (fullPath.indexOf("?") > 0)
           fullPath.append("&");
-        else 
+        else
           fullPath.append("?");
         fullPath.append("{{paramName}}=");
         qint32 count = 0;
@@ -87,6 +114,9 @@ void
 
     {{/collectionFormat}}
     {{/queryParams}}
+    url.setQuery(query);
+
+    QNetworkRequest request(url);
 
     HttpRequestWorker *worker = new HttpRequestWorker();
     HttpRequestInput input(fullPath, "{{httpMethod}}");
@@ -112,7 +142,12 @@ void
     {{/isContainer}}{{/bodyParams}}
 
     {{#headerParams}}
-    // TODO: add header support
+    {{#isContainer}}
+    // TODO: Add container variable support for header params
+    {{/isContainer}}
+    {{^isContainer}}
+    request.addRawHeader("{{paramName}}", QVariant::fromValue({{paramName}}).toByteArray());
+    {{/isContainer}}
     {{/headerParams}}
 
     connect(worker,
@@ -123,8 +158,7 @@ void
     worker->execute(&input);
 }
 
-void
-{{classname}}::{{nickname}}Callback(HttpRequestWorker * worker) {
+void {{classname}}::{{nickname}}Callback(HttpRequestWorker * worker) {
     QString msg;
     if (worker->error_type == QNetworkReply::NoError) {
         msg = QString("Success! %1 bytes").arg(worker->response.length());
