@@ -25,7 +25,7 @@ public:
     QUrl url() const;
 
     void setNetworkAccessManager(QNetworkAccessManager *networkAccessManager);
-    QNetworkAccessManager *networkAccessManager() const;
+    QNetworkAccessManager *networkAccessManager();
 
     // Operations
     {{#operations}}{{#operation}}void {{nickname}}({{#allParams}}{{{dataType}}} {{#vendorExtensions.x-codegen-isPointer}}*{{/vendorExtensions.x-codegen-isPointer}}{{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}});

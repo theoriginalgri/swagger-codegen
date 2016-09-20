@@ -1,6 +1,7 @@
 package io.swagger.codegen.languages;
 
 import io.swagger.codegen.*;
+import io.swagger.models.parameters.Parameter;
 import io.swagger.models.properties.*;
 
 import java.io.File;
@@ -20,7 +21,7 @@ public class Qt5CPP11Generator extends DefaultCodegen implements CodegenConfig {
 
     protected Set<String> copyableTypes = new HashSet<>();
 
-    protected boolean generateQObjects = false;
+    protected boolean generateQObjects = true;
 
 
     public Qt5CPP11Generator() {
@@ -236,8 +237,25 @@ public class Qt5CPP11Generator extends DefaultCodegen implements CodegenConfig {
     }
 
     @Override
+    public CodegenParameter fromParameter(Parameter param, Set<String> imports) {
+        CodegenParameter p = super.fromParameter(param, imports);
+
+        if (p.baseType != null && !copyableTypes.contains(p.baseType)) {
+            if (Boolean.TRUE.equals(p.isContainer)) {
+                p.vendorExtensions.put("x-codegen-inner-isPointer", true);
+            } else {
+                p.vendorExtensions.put("x-codegen-isPointer", true);
+            }
+        }
+
+        return p;
+    }
+
+    @Override
     public CodegenProperty fromProperty(String name, Property p) {
         CodegenProperty property = super.fromProperty(name, p);
+        property.getter = name; // Qt getters are not get-prefixed
+
         String type = getSwaggerType(p);
 
         if (!copyableTypes.contains(type)) {

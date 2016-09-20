@@ -6,6 +6,10 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 
+#ifdef QT_QML_LIB
+#include <QtQml>
+#endif // QT_QML_LIB
+
 namespace Swagger {
 
 static QHash<QString, QLatin1Char> collectionFormatDelimiters {
@@ -51,9 +55,56 @@ static QString formatCollectionParameter(const QList<T> &list, const QString &co
 {
 }
 
+void {{classname}}::setUrl(const QUrl &url)
+{
+    if (m_url == url) {
+        return;
+    }
+
+    m_url = url;
+
+    emit urlChanged(url);
+}
+
+QUrl {{classname}}::url() const
+{
+    return m_url;
+}
+
+void {{classname}}::setNetworkAccessManager(QNetworkAccessManager *networkAccessManager)
+{
+    if (m_networkAccessManager == networkAccessManager) {
+        return;
+    }
+
+    if (m_networkAccessManager && m_networkAccessManager->parent() == this) {
+        m_networkAccessManager->deleteLater();
+    }
+
+    m_networkAccessManager = networkAccessManager;
+}
+
+QNetworkAccessManager *{{classname}}::networkAccessManager()
+{
+    if (!m_networkAccessManager) {
+#ifdef QT_QML_LIB
+        QQmlEngine *engine = qqmlEngine(this);
+        if (engine) {
+            m_networkAccessManager = engine->networkAccessManager();
+        }
+#endif // QT_QML_LIB
+
+        if (!m_networkAccessManager) {
+            m_networkAccessManager = new QNetworkAccessManager(this);
+        }
+    }
+
+    return m_networkAccessManager;
+}
+
 {{#operations}}
 {{#operation}}
-void {{classname}}::{{nickname}}({{#allParams}}{{{dataType}}} {{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}}) {
+void {{classname}}::{{nickname}}({{#allParams}}{{{dataType}}} {{#vendorExtensions.x-codegen-isPointer}}*{{/vendorExtensions.x-codegen-isPointer}}{{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}}) {
     QUrl url(m_url);
     QString fullPath = url.path() + "{{path}}";
 
@@ -69,54 +120,13 @@ void {{classname}}::{{nickname}}({{#allParams}}{{{dataType}}} {{paramName}}{{#ha
     query.addQueryParam("{{paramName}}", QVariant::fromValue({{paramName}}).toString());
     {{/collectionFormat}}
     {{#collectionFormat}}
-
     query.addQueryParam("{{paramName}}", formatCollectionParameter({{paramName}}, {{collectionFormat}}));
-
-    if ({{{paramName}}}->size() > 0) {
-      if (QString("{{collectionFormat}}").indexOf("multi") == 0) {
-        foreach({{{baseType}}} t, *{{paramName}}) {
-          if (fullPath.indexOf("?") > 0)
-            fullPath.append("&");
-          else
-            fullPath.append("?");
-          fullPath.append("{{{paramName}}}=").append(stringValue(t));
-        }
-      }
-      else if (QString("{{collectionFormat}}").indexOf("ssv") == 0) {
-        if (fullPath.indexOf("?") > 0)
-          fullPath.append("&");
-        else
-          fullPath.append("?");
-        fullPath.append("{{paramName}}=");
-        qint32 count = 0;
-        foreach({{{baseType}}} t, *{{paramName}}) {
-          if (count > 0) {
-            fullPath.append(" ");
-          }
-          fullPath.append(stringValue(t));
-        }
-      }
-      else if (QString("{{collectionFormat}}").indexOf("tsv") == 0) {
-        if (fullPath.indexOf("?") > 0)
-          fullPath.append("&");
-        else
-          fullPath.append("?");
-        fullPath.append("{{paramName}}=");
-        qint32 count = 0;
-        foreach({{{baseType}}} t, *{{paramName}}) {
-          if (count > 0) {
-            fullPath.append("\t");
-          }
-          fullPath.append(stringValue(t));
-        }
-      }
-    }
-
     {{/collectionFormat}}
     {{/queryParams}}
     url.setQuery(query);
 
     QNetworkRequest request(url);
+    request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, QVariant::fromValue(true));
 
     HttpRequestWorker *worker = new HttpRequestWorker();
     HttpRequestInput input(fullPath, "{{httpMethod}}");
@@ -150,12 +160,33 @@ void {{classname}}::{{nickname}}({{#allParams}}{{{dataType}}} {{paramName}}{{#ha
     {{/isContainer}}
     {{/headerParams}}
 
-    connect(worker,
-            &HttpRequestWorker::on_execution_finished,
-            this,
-            &{{classname}}::{{nickname}}Callback);
+    {{#vendorExtensions.x-codegen-http-post}}
+    QNetworkReply *reply = networkAccessManager()->post(request, output);
+    {{/vendorExtensions.x-codegen-http-post}}
+    {{#vendorExtensions.x-codegen-http-put}}
+    QNetworkReply *reply = networkAccessManager()->put(request, output);
+    {{/vendorExtensions.x-codegen-http-put}}
+    {{#vendorExtensions.x-codegen-http-get}}
+    QNetworkReply *reply = networkAccessManager()->get(request);
+    {{/vendorExtensions.x-codegen-http-get}}
+    {{#vendorExtensions.x-codegen-http-head}}
+    QNetworkReply *reply = networkAccessManager()->head(request);
+    {{/vendorExtensions.x-codegen-http-head}}
+    {{#vendorExtensions.x-codegen-http-delete}}
+    QNetworkReply *reply = networkAccessManager()->deleteResource(request);
+    {{/vendorExtensions.x-codegen-http-delete}}
 
-    worker->execute(&input);
+    connect(reply, &QNetworkReply::finished, [this, reply]() {
+        {{#returnType}}emit {{nickname}}Signal(false, QString(), output);{{/returnType}}
+        {{^returnType}}emit {{nickname}}Signal(false, QString());{{/returnType}}
+
+        reply->deleteLater();
+    });
+
+    connect(reply, &QNetworkReply::error, [this, reply](QNetworkReply::NetworkError code) {
+
+        reply->deleteLater();
+    });
 }
 
 void {{classname}}::{{nickname}}Callback(HttpRequestWorker * worker) {
