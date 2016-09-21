@@ -12,8 +12,10 @@
 {{#imports}}{{{import}}}
 {{/imports}}
 
-#include "SWGObject.h"
-
+{{#generateQObjects}}
+#include <QObject>
+#include <QQmlListProperty>
+{{/generateQObjects}}
 #include <QJsonObject>
 
 {{#models}}{{#model}}
@@ -78,9 +80,7 @@ private:
     {{#vars}}
     {{#isContainer}}
     {{#vendorExtensions.x-codegen-inner-isPointer}}
-    inline static int {{name}}_count(QQmlListProperty<{{complexType}}> *property) {
-        return qobject_cast<{{classname}} *>(property->object)->m_{{name}}.size();
-    }
+    QQmlListProperty<{{complexType}}> qml{{name}}();
     {{/vendorExtensions.x-codegen-inner-isPointer}}
     {{/isContainer}}
     {{/vars}}

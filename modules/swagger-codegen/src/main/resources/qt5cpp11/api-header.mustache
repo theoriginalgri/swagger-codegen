@@ -2,12 +2,12 @@
 #ifndef _SWG_{{classname}}_H_
 #define _SWG_{{classname}}_H_
 
-#include "{{prefix}}HttpRequest.h"
-
 {{#imports}}{{{import}}}
 {{/imports}}
 
 #include <QObject>
+#include <QNetworkReply>
+#include <QNetworkAccessManager>
 
 namespace Swagger {
 
@@ -28,16 +28,19 @@ public:
     QNetworkAccessManager *networkAccessManager();
 
     // Operations
+public slots:
     {{#operations}}{{#operation}}void {{nickname}}({{#allParams}}{{{dataType}}} {{#vendorExtensions.x-codegen-isPointer}}*{{/vendorExtensions.x-codegen-isPointer}}{{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}});
     {{/operation}}{{/operations}}
 signals:
-    {{#operations}}{{#operation}}void {{nickname}}Signal({{#returnType}}{{{returnType}}} summary{{/returnType}});
+    {{#operations}}{{#operation}}void {{nickname}}Signal(QNetworkReply::NetworkError error, const QString &errorMessage{{#returnType}}, {{{returnType}}} summary{{/returnType}});
     {{/operation}}{{/operations}}
     void urlChanged(const QUrl &url);
 
 private:
+    /*
     {{#operations}}{{#operation}}void {{nickname}}Callback (HttpRequestWorker *worker);
     {{/operation}}{{/operations}}
+    */
 
 private:
     QUrl m_url;
@@ -45,4 +48,5 @@ private:
 };
 
 }
+
 #endif

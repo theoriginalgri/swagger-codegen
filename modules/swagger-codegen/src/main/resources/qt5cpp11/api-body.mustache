@@ -1,7 +1,5 @@
 {{>licenseInfo}}
 #include "{{classname}}.h"
-#include "{{prefix}}Helpers.h"
-#include "{{prefix}}ModelFactory.h"
 
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -12,7 +10,7 @@
 
 namespace Swagger {
 
-static QHash<QString, QLatin1Char> collectionFormatDelimiters {
+static QHash<QString, QChar> collectionFormatDelimiters {
     { "csv", QLatin1Char(',') },
     { "tsv", QLatin1Char('\t') },
     { "ssv", QLatin1Char(' ') },
@@ -21,7 +19,7 @@ static QHash<QString, QLatin1Char> collectionFormatDelimiters {
 
 template <typename T>
 static QString formatCollectionParameter(const QList<T> &list, const QString &collectionFormat) {
-    const QString delimiter = collectionFormatDelimiters.value(collectionFormat);
+    const QChar delimiter = collectionFormatDelimiters.value(collectionFormat);
 
     QString value;
     QTextStream s(&value);
@@ -88,7 +86,7 @@ QNetworkAccessManager *{{classname}}::networkAccessManager()
 {
     if (!m_networkAccessManager) {
 #ifdef QT_QML_LIB
-        QQmlEngine *engine = qqmlEngine(this);
+        QQmlEngine *engine = qmlEngine(this);
         if (engine) {
             m_networkAccessManager = engine->networkAccessManager();
         }
@@ -117,10 +115,10 @@ void {{classname}}::{{nickname}}({{#allParams}}{{{dataType}}} {{#vendorExtension
     QUrlQuery query(url);
     {{#queryParams}}
     {{^collectionFormat}}
-    query.addQueryParam("{{paramName}}", QVariant::fromValue({{paramName}}).toString());
+    query.addQueryItem("{{paramName}}", QVariant::fromValue({{paramName}}).toString());
     {{/collectionFormat}}
     {{#collectionFormat}}
-    query.addQueryParam("{{paramName}}", formatCollectionParameter({{paramName}}, {{collectionFormat}}));
+    query.addQueryItem("{{paramName}}", formatCollectionParameter({{paramName}}, "{{collectionFormat}}"));
     {{/collectionFormat}}
     {{/queryParams}}
     url.setQuery(query);
@@ -128,6 +126,9 @@ void {{classname}}::{{nickname}}({{#allParams}}{{{dataType}}} {{#vendorExtension
     QNetworkRequest request(url);
     request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, QVariant::fromValue(true));
 
+    QByteArray output;
+
+    /*
     HttpRequestWorker *worker = new HttpRequestWorker();
     HttpRequestInput input(fullPath, "{{httpMethod}}");
 
@@ -150,13 +151,14 @@ void {{classname}}::{{nickname}}({{#allParams}}{{{dataType}}} {{#vendorExtension
     QString output = {{paramName}}.asJson();
     input.request_body.append(output);
     {{/isContainer}}{{/bodyParams}}
+    */
 
     {{#headerParams}}
     {{#isContainer}}
     // TODO: Add container variable support for header params
     {{/isContainer}}
     {{^isContainer}}
-    request.addRawHeader("{{paramName}}", QVariant::fromValue({{paramName}}).toByteArray());
+    request.setRawHeader("{{paramName}}", QVariant::fromValue({{paramName}}).toByteArray());
     {{/isContainer}}
     {{/headerParams}}
 
@@ -177,18 +179,18 @@ void {{classname}}::{{nickname}}({{#allParams}}{{{dataType}}} {{#vendorExtension
     {{/vendorExtensions.x-codegen-http-delete}}
 
     connect(reply, &QNetworkReply::finished, [this, reply]() {
-        {{#returnType}}emit {{nickname}}Signal(false, QString(), output);{{/returnType}}
-        {{^returnType}}emit {{nickname}}Signal(false, QString());{{/returnType}}
+        {{#returnType}}
+        {{{returnType}}} output;
 
-        reply->deleteLater();
-    });
-
-    connect(reply, &QNetworkReply::error, [this, reply](QNetworkReply::NetworkError code) {
+        emit {{nickname}}Signal(reply->error(), reply->errorString(), output);
+        {{/returnType}}
+        {{^returnType}}emit {{nickname}}Signal(reply->error(), reply->errorString());{{/returnType}}
 
         reply->deleteLater();
     });
 }
 
+/*
 void {{classname}}::{{nickname}}Callback(HttpRequestWorker * worker) {
     QString msg;
     if (worker->error_type == QNetworkReply::NoError) {
@@ -245,6 +247,7 @@ void {{classname}}::{{nickname}}Callback(HttpRequestWorker * worker) {
     {{#returnType}}emit {{nickname}}Signal(output);{{/returnType}}
     {{^returnType}}emit {{nickname}}Signal();{{/returnType}}
 }
+*/
 {{/operation}}
 {{/operations}}
 } /* namespace Swagger */

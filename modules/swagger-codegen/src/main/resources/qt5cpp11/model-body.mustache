@@ -24,7 +24,7 @@ template <>
 struct ToJsonImpl<1> {
     template <typename T>
     static QJsonValue toJson(const T& value) {
-        return value.toJson();
+        return value->toJson();
     }
 };
 
@@ -34,7 +34,7 @@ QJsonArray toJsonArray(const QList<T> &list)
     QJsonArray array;
 
     for(const T &item : list) {
-        array.append(ToJsonImpl<QTypeInfo<T>::isComplex>::template toJson<T>(value));
+        array.append(ToJsonImpl<QTypeInfo<T>::isPointer>::template toJson<T>(item));
     }
 
     return array;
@@ -84,7 +84,7 @@ QJsonObject {{classname}}::toJson() const
     jsonObject.insert("{{name}}", toJsonArray(m_{{name}}));
     {{/isContainer}}
     {{^isContainer}}
-    jsonObject.insert("{{name}}", m_{{name}});
+    jsonObject.insert("{{name}}", m_{{name}}{{vendorExtensions.x-codegen-toJsonFunction}});
     {{/isContainer}}
     {{/vendorExtensions.x-codegen-isPointer}}
     {{/vars}}
@@ -99,10 +99,6 @@ QJsonObject {{classname}}::toJson() const
 {{classname}} *{{classname}}::fromJson(const QJsonObject &json)
 {{/generateQObjects}}
 {
-    if (!json.isObject()) {
-        return nullptr;
-    }
-
     {{#generateQObjects}}
     {{classname}} *p = new {{classname}}(parent);
     {{/generateQObjects}}
@@ -112,13 +108,13 @@ QJsonObject {{classname}}::toJson() const
 
     {{#vars}}
     {{#vendorExtensions.x-codegen-isPointer}}
-    p->{{setter}}({{baseType}}::fromJson(json.toObject("{{name}}")));
+    p->{{setter}}({{baseType}}::fromJson(json.value("{{name}}").toObject()));
     {{/vendorExtensions.x-codegen-isPointer}}
     {{^vendorExtensions.x-codegen-isPointer}}
     {{#isContainer}}
     {
         {{baseType}}<{{complexType}}{{#vendorExtensions.x-codegen-inner-isPointer}} *{{/vendorExtensions.x-codegen-inner-isPointer}}> list;
-        for (QJsonValue value : json.toArray("{{name}}")) {
+        for (QJsonValue value : json.value("{{name}}").toArray()) {
         {{#vendorExtensions.x-codegen-inner-isPointer}}
             {{#generateQObjects}}
             list << {{complexType}}::fromJson(value.toObject(), parent);
@@ -128,14 +124,14 @@ QJsonObject {{classname}}::toJson() const
             {{/generateQObjects}}
         {{/vendorExtensions.x-codegen-inner-isPointer}}
         {{^vendorExtensions.x-codegen-inner-isPointer}}
-            list << value.{{vendorExtensions.x-codegen-inner-conversionFunction}}();
+            list << value.{{vendorExtensions.x-codegen-inner-fromJsonFunction}}();
         {{/vendorExtensions.x-codegen-inner-isPointer}}
         }
         p->{{setter}}(list);
     }
     {{/isContainer}}
     {{^isContainer}}
-    p->{{setter}}(json.{{vendorExtensions.x-codegen-conversionFunction}}("{{name}}"));
+    p->{{setter}}(json.value("{{name}}").{{vendorExtensions.x-codegen-fromJsonFunction}}());
     {{/isContainer}}
     {{/vendorExtensions.x-codegen-isPointer}}
     {{/vars}}
@@ -144,6 +140,12 @@ QJsonObject {{classname}}::toJson() const
 }
 
 {{#vars}}
+{{#vendorExtensions.x-codegen-inner-isPointer}}
+QQmlListProperty<{{complexType}}> {{classname}}::qml{{name}}() {
+    return QQmlListProperty<{{complexType}}>(this, m_{{name}});
+}
+{{/vendorExtensions.x-codegen-inner-isPointer}}
+
 {{{datatype}}} {{classname}}::{{name}}() const {
     return m_{{name}};
 }

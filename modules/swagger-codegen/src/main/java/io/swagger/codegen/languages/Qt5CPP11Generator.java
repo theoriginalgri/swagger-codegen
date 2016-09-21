@@ -1,6 +1,9 @@
 package io.swagger.codegen.languages;
 
 import io.swagger.codegen.*;
+import io.swagger.models.Model;
+import io.swagger.models.Operation;
+import io.swagger.models.Swagger;
 import io.swagger.models.parameters.Parameter;
 import io.swagger.models.properties.*;
 
@@ -94,10 +97,10 @@ public class Qt5CPP11Generator extends DefaultCodegen implements CodegenConfig {
 
         //supportingFiles.add(new SupportingFile("helpers-header.mustache", sourceFolder, PREFIX + "Helpers.h"));
         //supportingFiles.add(new SupportingFile("helpers-body.mustache", sourceFolder, PREFIX + "Helpers.cpp"));
-        supportingFiles.add(new SupportingFile("HttpRequest.h.mustache", sourceFolder, PREFIX + "HttpRequest.h"));
-        supportingFiles.add(new SupportingFile("HttpRequest.cpp.mustache", sourceFolder, PREFIX + "HttpRequest.cpp"));
-        supportingFiles.add(new SupportingFile("modelFactory.mustache", sourceFolder, PREFIX + "ModelFactory.h"));
-        supportingFiles.add(new SupportingFile("object.mustache", sourceFolder, PREFIX + "Object.h"));
+        //supportingFiles.add(new SupportingFile("HttpRequest.h.mustache", sourceFolder, PREFIX + "HttpRequest.h"));
+        //supportingFiles.add(new SupportingFile("HttpRequest.cpp.mustache", sourceFolder, PREFIX + "HttpRequest.cpp"));
+        //supportingFiles.add(new SupportingFile("modelFactory.mustache", sourceFolder, PREFIX + "ModelFactory.h"));
+        //supportingFiles.add(new SupportingFile("object.mustache", sourceFolder, PREFIX + "Object.h"));
 
         super.typeMapping = new HashMap<String, String>();
 
@@ -109,7 +112,7 @@ public class Qt5CPP11Generator extends DefaultCodegen implements CodegenConfig {
         typeMapping.put("boolean", "bool");
         typeMapping.put("array", "QList");
         typeMapping.put("map", "QMap");
-        typeMapping.put("file", "SWGHttpRequestInputFileElement");
+        typeMapping.put("file", "QIODevice");
         typeMapping.put("object", PREFIX + "Object");
         //TODO binary should be mapped to byte array
         // mapped to String as a workaround
@@ -130,11 +133,12 @@ public class Qt5CPP11Generator extends DefaultCodegen implements CodegenConfig {
 
         importMapping = new HashMap<String, String>();
 
-        importMapping.put("SWGHttpRequestInputFileElement", "#include \"" + PREFIX + "HttpRequest.h\"");
+        //importMapping.put("SWGHttpRequestInputFileElement", "#include \"" + PREFIX + "HttpRequest.h\"");
 
         namespaces = new HashMap<String, String>();
 
         foundationClasses.add("QString");
+        foundationClasses.add("QIODevice");
 
         systemIncludes.add("QString");
         systemIncludes.add("QList");
@@ -202,7 +206,19 @@ public class Qt5CPP11Generator extends DefaultCodegen implements CodegenConfig {
         return "#include \"" + name + ".h\"";
     }
 
-    private String getConversionFunction(Property p) {
+    private String getToJsonFunction(Property p) {
+        String conversionFunction = null;
+
+        if (p instanceof DateProperty) {
+            conversionFunction = ".toString(Qt::ISODate)";
+        } else if (p instanceof DateTimeProperty) {
+            conversionFunction = ".toString(Qt::ISODate)";
+        }
+
+        return conversionFunction;
+    }
+
+    private String getFromJsonFunction(Property p) {
         String conversionFunction = null;
 
         if (p instanceof StringProperty) {
@@ -237,6 +253,15 @@ public class Qt5CPP11Generator extends DefaultCodegen implements CodegenConfig {
     }
 
     @Override
+    public CodegenOperation fromOperation(String path, String httpMethod, Operation operation, Map<String, Model> definitions, Swagger swagger) {
+        CodegenOperation op = super.fromOperation(path, httpMethod, operation, definitions, swagger);
+
+        op.vendorExtensions.put("x-codegen-http-" + httpMethod.toLowerCase(), true);
+
+        return op;
+    }
+
+    @Override
     public CodegenParameter fromParameter(Parameter param, Set<String> imports) {
         CodegenParameter p = super.fromParameter(param, imports);
 
@@ -261,9 +286,14 @@ public class Qt5CPP11Generator extends DefaultCodegen implements CodegenConfig {
         if (!copyableTypes.contains(type)) {
             property.vendorExtensions.put("x-codegen-isPointer", true);
         } else {
-            String conversionFunction = getConversionFunction(p);
-            if (conversionFunction != null) {
-                property.vendorExtensions.put("x-codegen-conversionFunction", conversionFunction);
+            String fromJsonFunction = getFromJsonFunction(p);
+            if (fromJsonFunction != null) {
+                property.vendorExtensions.put("x-codegen-fromJsonFunction", fromJsonFunction);
+            }
+
+            String toJsonFunction = getToJsonFunction(p);
+            if (toJsonFunction != null) {
+                property.vendorExtensions.put("x-codegen-toJsonFunction", toJsonFunction);
             }
         }
 
@@ -274,9 +304,14 @@ public class Qt5CPP11Generator extends DefaultCodegen implements CodegenConfig {
             if (!copyableTypes.contains(getSwaggerType(inner))) {
                 property.vendorExtensions.put("x-codegen-inner-isPointer", true);
             } else {
-                String conversionFunction = getConversionFunction(inner);
-                if (conversionFunction != null) {
-                    property.vendorExtensions.put("x-codegen-inner-conversionFunction", conversionFunction);
+                String fromJsonFunction = getFromJsonFunction(inner);
+                if (fromJsonFunction != null) {
+                    property.vendorExtensions.put("x-codegen-inner-fromJsonFunction", fromJsonFunction);
+                }
+
+                String toJsonFunction = getToJsonFunction(inner);
+                if (toJsonFunction != null) {
+                    property.vendorExtensions.put("x-codegen-inner-toJsonFunction", toJsonFunction);
                 }
             }
         }
