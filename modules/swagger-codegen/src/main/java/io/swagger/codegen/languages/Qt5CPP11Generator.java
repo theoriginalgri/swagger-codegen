@@ -256,6 +256,10 @@ public class Qt5CPP11Generator extends DefaultCodegen implements CodegenConfig {
     public CodegenOperation fromOperation(String path, String httpMethod, Operation operation, Map<String, Model> definitions, Swagger swagger) {
         CodegenOperation op = super.fromOperation(path, httpMethod, operation, definitions, swagger);
 
+        if (op.returnBaseType != null && !copyableTypes.contains(op.returnBaseType)) {
+            op.vendorExtensions.put("x-codegen-isPointer", true);
+        }
+
         op.vendorExtensions.put("x-codegen-http-" + httpMethod.toLowerCase(), true);
 
         return op;

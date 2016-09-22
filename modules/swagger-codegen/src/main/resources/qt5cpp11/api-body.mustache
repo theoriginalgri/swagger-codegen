@@ -179,8 +179,10 @@ void {{classname}}::{{nickname}}({{#allParams}}{{{dataType}}} {{#vendorExtension
     {{/vendorExtensions.x-codegen-http-delete}}
 
     connect(reply, &QNetworkReply::finished, [this, reply]() {
+        QJsonDocument document = QJsonDocument::fromBinaryData(reply->readAll());
+
         {{#returnType}}
-        {{{returnType}}} output;
+        {{{returnBaseType}}} {{#vendorExtensions.x-codegen-isPointer}}*{{/vendorExtensions.x-codegen-isPointer}}output = {{#vendorExtensions.x-codegen-isPointer}}{{{returnBaseType}}}::fromJson(document.object(), this){{/vendorExtensions.x-codegen-isPointer}};
 
         emit {{nickname}}Signal(reply->error(), reply->errorString(), output);
         {{/returnType}}
