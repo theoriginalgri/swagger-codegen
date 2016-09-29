@@ -126,15 +126,33 @@ void {{classname}}::{{nickname}}({{#allParams}}{{{dataType}}} {{#vendorExtension
     QNetworkRequest request(url);
     request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, QVariant::fromValue(true));
 
-    QByteArray output;
+    {{#vendorExtensions.x-codgen-hasFiles}}
+    QHttpMultiPart *multiPart = new QHttpMultiPart(QHttpMultiPart::FormDataType);
+    QMimeDatabase mimeDb;
+    {{/vendorExtensions.x-codgen-hasFiles}}
+    {{^vendorExtensions.x-codgen-hasFiles}}
+    {{/vendorExtensions.x-codgen-hasFiles}}
+    {{#formParams}}
+    {{^isFile}}
+    {
+        QHttpPart part;
+        part.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("text/plain"));
+        part.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"{{paramName}}\""));
+        part.setBody(QVariant::fromValue({{paramName}}).toString());
 
-    /*
-    HttpRequestWorker *worker = new HttpRequestWorker();
-    HttpRequestInput input(fullPath, "{{httpMethod}}");
-
-    {{#formParams}}if ({{paramName}} != NULL) {
-        {{^isFile}}input.add_var("{{paramName}}", *{{paramName}});{{/isFile}}{{#isFile}}input.add_file("{{paramName}}", (*{{paramName}}).local_filename, (*{{paramName}}).request_filename, (*{{paramName}}).mime_type);{{/isFile}}
+        multiPart->append(part);
     }
+    {{/isFile}}
+    {{#isFile}}
+    {
+        QHttpPart part;
+        part.setHeader(QNetworkRequest::ContentTypeHeader, mimeDb.mimeTypeForData({{paramName}}));
+        part.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"{{paramName}}\""));
+        part.setBodyDevice({{paramName}});
+
+        multiPart->append(part);
+    }
+    {{/isFile}}
     {{/formParams}}
 
     {{#bodyParams}}
@@ -148,10 +166,8 @@ void {{classname}}::{{nickname}}({{#allParams}}{{{dataType}}} {{#vendorExtension
     input.request_body.append(bytes);
     {{/isContainer}}
     {{^isContainer}}
-    QString output = {{paramName}}.asJson();
-    input.request_body.append(output);
+    QByteArray output = QJsonDocument({{paramName}}->toJson()).toBinaryData();
     {{/isContainer}}{{/bodyParams}}
-    */
 
     {{#headerParams}}
     {{#isContainer}}
@@ -163,10 +179,20 @@ void {{classname}}::{{nickname}}({{#allParams}}{{{dataType}}} {{#vendorExtension
     {{/headerParams}}
 
     {{#vendorExtensions.x-codegen-http-post}}
+    {{#vendorExtensions.x-codgen-hasFiles}}
+    QNetworkReply *reply = networkAccessManager()->post(request, multiPart);
+    {{/vendorExtensions.x-codgen-hasFiles}}
+    {{^vendorExtensions.x-codgen-hasFiles}}
     QNetworkReply *reply = networkAccessManager()->post(request, output);
+    {{/vendorExtensions.x-codgen-hasFiles}}
     {{/vendorExtensions.x-codegen-http-post}}
     {{#vendorExtensions.x-codegen-http-put}}
+    {{#vendorExtensions.x-codgen-hasFiles}}
+    QNetworkReply *reply = networkAccessManager()->put(request, multiPart);
+    {{/vendorExtensions.x-codgen-hasFiles}}
+    {{^vendorExtensions.x-codgen-hasFiles}}
     QNetworkReply *reply = networkAccessManager()->put(request, output);
+    {{/vendorExtensions.x-codgen-hasFiles}}
     {{/vendorExtensions.x-codegen-http-put}}
     {{#vendorExtensions.x-codegen-http-get}}
     QNetworkReply *reply = networkAccessManager()->get(request);

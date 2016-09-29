@@ -260,6 +260,16 @@ public class Qt5CPP11Generator extends DefaultCodegen implements CodegenConfig {
             op.vendorExtensions.put("x-codegen-isPointer", true);
         }
 
+        // Add x-codgen-hasFiles property if we have at least one file parameter
+        if (op.getHasFormParams()) {
+            for(CodegenParameter parameter : op.formParams) {
+                if (Boolean.TRUE.equals(parameter.isFile)) {
+                    op.vendorExtensions.put("x-codegen-hasFiles", true);
+                    break;
+                }
+            }
+        }
+
         op.vendorExtensions.put("x-codegen-http-" + httpMethod.toLowerCase(), true);
 
         return op;
@@ -384,7 +394,7 @@ public class Qt5CPP11Generator extends DefaultCodegen implements CodegenConfig {
         if (copyableTypes.contains(swaggerType)) {
             return "const " +  swaggerType + "&";
         } else if (foundationClasses.contains(swaggerType)) {
-            return swaggerType + "****";
+            return swaggerType + "*";
         } else if (languageSpecificPrimitives.contains(swaggerType)) {
             return toModelName(swaggerType);
         } else {

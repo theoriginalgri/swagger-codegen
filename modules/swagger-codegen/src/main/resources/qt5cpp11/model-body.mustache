@@ -40,6 +40,12 @@ QJsonArray toJsonArray(const QList<T> &list)
     return array;
 }
 
+template <typename T>
+QString toString(const T &item)
+{
+    return QVariant::fromValue(item).toString();
+}
+
 {{#generateQObjects}}
 {{classname}}::{{classname}}(QObject *parent)
 : QObject(parent)
@@ -84,7 +90,7 @@ QJsonObject {{classname}}::toJson() const
     jsonObject.insert("{{name}}", toJsonArray(m_{{name}}));
     {{/isContainer}}
     {{^isContainer}}
-    jsonObject.insert("{{name}}", m_{{name}}{{vendorExtensions.x-codegen-toJsonFunction}});
+    jsonObject.insert("{{name}}", toString(m_{{name}}));
     {{/isContainer}}
     {{/vendorExtensions.x-codegen-isPointer}}
     {{/vars}}
@@ -131,7 +137,7 @@ QJsonObject {{classname}}::toJson() const
     }
     {{/isContainer}}
     {{^isContainer}}
-    p->{{setter}}(json.value("{{name}}").{{vendorExtensions.x-codegen-fromJsonFunction}}());
+    p->{{setter}}(json.value("{{name}}").toVariant().{{vendorExtensions.x-codegen-fromJsonFunction}}());
     {{/isContainer}}
     {{/vendorExtensions.x-codegen-isPointer}}
     {{/vars}}
