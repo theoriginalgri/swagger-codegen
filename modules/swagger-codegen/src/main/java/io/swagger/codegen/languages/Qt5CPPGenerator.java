@@ -18,6 +18,7 @@ import io.swagger.models.properties.MapProperty;
 import io.swagger.models.properties.Property;
 import io.swagger.models.properties.RefProperty;
 import io.swagger.models.properties.StringProperty;
+import io.swagger.models.properties.UUIDProperty;
 
 import java.io.File;
 import java.util.Arrays;
@@ -126,6 +127,7 @@ public class Qt5CPPGenerator extends DefaultCodegen implements CodegenConfig {
         // mapped to String as a workaround
         typeMapping.put("binary", "QString");
         typeMapping.put("ByteArray", "QByteArray");
+        typeMapping.put("UUID", "QUuid");
 
         importMapping = new HashMap<String, String>();
 
@@ -141,6 +143,7 @@ public class Qt5CPPGenerator extends DefaultCodegen implements CodegenConfig {
         systemIncludes.add("QDate");
         systemIncludes.add("QDateTime");
         systemIncludes.add("QByteArray");
+        systemIncludes.add("QUuid");
     }
 
     /**
@@ -262,6 +265,8 @@ public class Qt5CPPGenerator extends DefaultCodegen implements CodegenConfig {
     public String toDefaultValue(Property p) {
         if (p instanceof StringProperty) {
             return "new QString(\"\")";
+        } else if (p instanceof UUIDProperty) {
+            return "new QUuid()";
         } else if (p instanceof BooleanProperty) {
             return "false";
         } else if (p instanceof DateProperty) {
