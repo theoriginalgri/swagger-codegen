@@ -333,6 +333,39 @@ public class Qt5CPP11Generator extends DefaultCodegen implements CodegenConfig {
         return property;
     }
 
+    @Override
+    public CodegenParameter fromParameter(Parameter param, Set<String> imports) {
+        CodegenParameter p = super.fromParameter(param, imports);
+
+        return p;
+    }
+
+    @Override
+    public CodegenOperation fromOperation(String path, String httpMethod, Operation operation, Map<String, Model> definitions, Swagger swagger) {
+        CodegenOperation op = super.fromOperation(path, httpMethod, operation, definitions, swagger);
+
+        // FIXME: Sadly CodegenOperation has no way to detect the http method with booleans :(
+        switch(httpMethod) {
+            case "GET":
+                op.vendorExtensions.put("x-codegen-http-GET", true);
+                break;
+            case "POST":
+                op.vendorExtensions.put("x-codegen-http-POST", true);
+                break;
+            case "PUT":
+                op.vendorExtensions.put("x-codegen-http-PUT", true);
+                break;
+            case "HEAD":
+                op.vendorExtensions.put("x-codegen-http-HEAD", true);
+                break;
+            case "DELETE":
+                op.vendorExtensions.put("x-codegen-http-DELETE", true);
+                break;
+        }
+
+        return op;
+    }
+
     /**
      * Escapes a reserved word as defined in the `reservedWords` array. Handle escaping
      * those terms here.  This logic is only called if a variable matches the reseved words
