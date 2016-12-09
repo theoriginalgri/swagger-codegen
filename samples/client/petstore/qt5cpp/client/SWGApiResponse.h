@@ -19,45 +19,37 @@
 #ifndef SWGApiResponse_H_
 #define SWGApiResponse_H_
 
-#include <QJsonObject>
-
+#include "SwaggerConfig.h"
 
 #include <QString>
-
-#include "SWGObject.h"
+#include <QSharedDataPointer>
 
 
 namespace Swagger {
 
-class SWGApiResponse: public SWGObject {
+class SWGApiResponseData;
+
+class SWGApiResponse {
 public:
     SWGApiResponse();
-    SWGApiResponse(QString* json);
-    virtual ~SWGApiResponse();
-    void init();
-    void cleanup();
+    SWGApiResponse(const SWGApiResponse &other);
+    ~SWGApiResponse();
 
-    QString asJson ();
-    QJsonObject* asJsonObject();
-    void fromJsonObject(QJsonObject &json);
-    SWGApiResponse* fromJson(QString &jsonString);
+    qint32 code() const;
+    void setCode(const qint32 &code);
 
-    qint32 getCode();
-    void setCode(qint32 code);
+    QString type() const;
+    void setType(const QString &type);
 
-    QString* getType();
-    void setType(QString* type);
-
-    QString* getMessage();
-    void setMessage(QString* message);
-
+    QString message() const;
+    void setMessage(const QString &message);
 
 private:
-    qint32 code;
-    QString* type;
-    QString* message;
+    QSharedDataPointer<SWGApiResponseData> d;
 };
 
 } /* namespace Swagger */
+
+Q_DECLARE_TYPEINFO(Swagger::SWGApiResponse, Q_MOVABLE_TYPE);
 
 #endif /* SWGApiResponse_H_ */

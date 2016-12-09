@@ -12,99 +12,43 @@
 
 
 #include "SWGCategory.h"
-
-#include "SWGHelpers.h"
-
-#include <QJsonDocument>
-#include <QJsonArray>
-#include <QObject>
-#include <QDebug>
+#include "SWGCategory_p.h"
 
 namespace Swagger {
 
-
-SWGCategory::SWGCategory(QString* json) {
-    init();
-    this->fromJson(*json);
-}
-
-SWGCategory::SWGCategory() {
-    init();
-}
-
-SWGCategory::~SWGCategory() {
-    this->cleanup();
-}
-
-void
-SWGCategory::init() {
-    id = 0L;
-    name = new QString("");
-}
-
-void
-SWGCategory::cleanup() {
-    
-
-    if(name != nullptr) {
-        delete name;
-    }
-}
-
-SWGCategory*
-SWGCategory::fromJson(QString &json) {
-    QByteArray array (json.toStdString().c_str());
-    QJsonDocument doc = QJsonDocument::fromJson(array);
-    QJsonObject jsonObject = doc.object();
-    this->fromJsonObject(jsonObject);
-    return this;
-}
-
-void
-SWGCategory::fromJsonObject(QJsonObject &pJson) {
-    ::Swagger::setValue(&id, pJson["id"], "qint64", "");
-    ::Swagger::setValue(&name, pJson["name"], "QString", "QString");
-}
-
-QString
-SWGCategory::asJson ()
+SWGCategory::SWGCategory()
+: d(new SWGCategoryData)
 {
-    QJsonObject* obj = this->asJsonObject();
-    
-    QJsonDocument doc(*obj);
-    QByteArray bytes = doc.toJson();
-    return QString(bytes);
 }
 
-QJsonObject*
-SWGCategory::asJsonObject() {
-    QJsonObject* obj = new QJsonObject();
-    
-    obj->insert("id", QJsonValue(id));
-
-    toJsonValue(QString("name"), name, obj, QString("QString"));
-
-    return obj;
+SWGCategory::SWGCategory(const SWGCategory &other)
+: d(other.d)
+{
 }
 
-qint64
-SWGCategory::getId() {
-    return id;
-}
-void
-SWGCategory::setId(qint64 id) {
-    this->id = id;
+SWGCategory::~SWGCategory()
+{
 }
 
-QString*
-SWGCategory::getName() {
-    return name;
-}
-void
-SWGCategory::setName(QString* name) {
-    this->name = name;
+qint64 SWGCategory::id() const
+{
+    return d->id;
 }
 
+void SWGCategory::setId(const qint64 &id)
+{
+    d->id = id;
+}
+
+QString SWGCategory::name() const
+{
+    return d->name;
+}
+
+void SWGCategory::setName(const QString &name)
+{
+    d->name = name;
+}
 
 
 } /* namespace Swagger */

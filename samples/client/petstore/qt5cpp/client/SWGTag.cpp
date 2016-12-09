@@ -12,99 +12,43 @@
 
 
 #include "SWGTag.h"
-
-#include "SWGHelpers.h"
-
-#include <QJsonDocument>
-#include <QJsonArray>
-#include <QObject>
-#include <QDebug>
+#include "SWGTag_p.h"
 
 namespace Swagger {
 
-
-SWGTag::SWGTag(QString* json) {
-    init();
-    this->fromJson(*json);
-}
-
-SWGTag::SWGTag() {
-    init();
-}
-
-SWGTag::~SWGTag() {
-    this->cleanup();
-}
-
-void
-SWGTag::init() {
-    id = 0L;
-    name = new QString("");
-}
-
-void
-SWGTag::cleanup() {
-    
-
-    if(name != nullptr) {
-        delete name;
-    }
-}
-
-SWGTag*
-SWGTag::fromJson(QString &json) {
-    QByteArray array (json.toStdString().c_str());
-    QJsonDocument doc = QJsonDocument::fromJson(array);
-    QJsonObject jsonObject = doc.object();
-    this->fromJsonObject(jsonObject);
-    return this;
-}
-
-void
-SWGTag::fromJsonObject(QJsonObject &pJson) {
-    ::Swagger::setValue(&id, pJson["id"], "qint64", "");
-    ::Swagger::setValue(&name, pJson["name"], "QString", "QString");
-}
-
-QString
-SWGTag::asJson ()
+SWGTag::SWGTag()
+: d(new SWGTagData)
 {
-    QJsonObject* obj = this->asJsonObject();
-    
-    QJsonDocument doc(*obj);
-    QByteArray bytes = doc.toJson();
-    return QString(bytes);
 }
 
-QJsonObject*
-SWGTag::asJsonObject() {
-    QJsonObject* obj = new QJsonObject();
-    
-    obj->insert("id", QJsonValue(id));
-
-    toJsonValue(QString("name"), name, obj, QString("QString"));
-
-    return obj;
+SWGTag::SWGTag(const SWGTag &other)
+: d(other.d)
+{
 }
 
-qint64
-SWGTag::getId() {
-    return id;
-}
-void
-SWGTag::setId(qint64 id) {
-    this->id = id;
+SWGTag::~SWGTag()
+{
 }
 
-QString*
-SWGTag::getName() {
-    return name;
-}
-void
-SWGTag::setName(QString* name) {
-    this->name = name;
+qint64 SWGTag::id() const
+{
+    return d->id;
 }
 
+void SWGTag::setId(const qint64 &id)
+{
+    d->id = id;
+}
+
+QString SWGTag::name() const
+{
+    return d->name;
+}
+
+void SWGTag::setName(const QString &name)
+{
+    d->name = name;
+}
 
 
 } /* namespace Swagger */

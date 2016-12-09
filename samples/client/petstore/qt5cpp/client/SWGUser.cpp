@@ -12,198 +12,103 @@
 
 
 #include "SWGUser.h"
-
-#include "SWGHelpers.h"
-
-#include <QJsonDocument>
-#include <QJsonArray>
-#include <QObject>
-#include <QDebug>
+#include "SWGUser_p.h"
 
 namespace Swagger {
 
-
-SWGUser::SWGUser(QString* json) {
-    init();
-    this->fromJson(*json);
-}
-
-SWGUser::SWGUser() {
-    init();
-}
-
-SWGUser::~SWGUser() {
-    this->cleanup();
-}
-
-void
-SWGUser::init() {
-    id = 0L;
-    username = new QString("");
-    first_name = new QString("");
-    last_name = new QString("");
-    email = new QString("");
-    password = new QString("");
-    phone = new QString("");
-    user_status = 0;
-}
-
-void
-SWGUser::cleanup() {
-    
-
-    if(username != nullptr) {
-        delete username;
-    }
-
-    if(first_name != nullptr) {
-        delete first_name;
-    }
-
-    if(last_name != nullptr) {
-        delete last_name;
-    }
-
-    if(email != nullptr) {
-        delete email;
-    }
-
-    if(password != nullptr) {
-        delete password;
-    }
-
-    if(phone != nullptr) {
-        delete phone;
-    }
-
-}
-
-SWGUser*
-SWGUser::fromJson(QString &json) {
-    QByteArray array (json.toStdString().c_str());
-    QJsonDocument doc = QJsonDocument::fromJson(array);
-    QJsonObject jsonObject = doc.object();
-    this->fromJsonObject(jsonObject);
-    return this;
-}
-
-void
-SWGUser::fromJsonObject(QJsonObject &pJson) {
-    ::Swagger::setValue(&id, pJson["id"], "qint64", "");
-    ::Swagger::setValue(&username, pJson["username"], "QString", "QString");
-    ::Swagger::setValue(&first_name, pJson["firstName"], "QString", "QString");
-    ::Swagger::setValue(&last_name, pJson["lastName"], "QString", "QString");
-    ::Swagger::setValue(&email, pJson["email"], "QString", "QString");
-    ::Swagger::setValue(&password, pJson["password"], "QString", "QString");
-    ::Swagger::setValue(&phone, pJson["phone"], "QString", "QString");
-    ::Swagger::setValue(&user_status, pJson["userStatus"], "qint32", "");
-}
-
-QString
-SWGUser::asJson ()
+SWGUser::SWGUser()
+: d(new SWGUserData)
 {
-    QJsonObject* obj = this->asJsonObject();
-    
-    QJsonDocument doc(*obj);
-    QByteArray bytes = doc.toJson();
-    return QString(bytes);
 }
 
-QJsonObject*
-SWGUser::asJsonObject() {
-    QJsonObject* obj = new QJsonObject();
-    
-    obj->insert("id", QJsonValue(id));
-
-    toJsonValue(QString("username"), username, obj, QString("QString"));
-
-    toJsonValue(QString("firstName"), first_name, obj, QString("QString"));
-
-    toJsonValue(QString("lastName"), last_name, obj, QString("QString"));
-
-    toJsonValue(QString("email"), email, obj, QString("QString"));
-
-    toJsonValue(QString("password"), password, obj, QString("QString"));
-
-    toJsonValue(QString("phone"), phone, obj, QString("QString"));
-
-    obj->insert("userStatus", QJsonValue(user_status));
-
-    return obj;
+SWGUser::SWGUser(const SWGUser &other)
+: d(other.d)
+{
 }
 
-qint64
-SWGUser::getId() {
-    return id;
-}
-void
-SWGUser::setId(qint64 id) {
-    this->id = id;
+SWGUser::~SWGUser()
+{
 }
 
-QString*
-SWGUser::getUsername() {
-    return username;
-}
-void
-SWGUser::setUsername(QString* username) {
-    this->username = username;
+qint64 SWGUser::id() const
+{
+    return d->id;
 }
 
-QString*
-SWGUser::getFirstName() {
-    return first_name;
-}
-void
-SWGUser::setFirstName(QString* first_name) {
-    this->first_name = first_name;
+void SWGUser::setId(const qint64 &id)
+{
+    d->id = id;
 }
 
-QString*
-SWGUser::getLastName() {
-    return last_name;
-}
-void
-SWGUser::setLastName(QString* last_name) {
-    this->last_name = last_name;
+QString SWGUser::username() const
+{
+    return d->username;
 }
 
-QString*
-SWGUser::getEmail() {
-    return email;
-}
-void
-SWGUser::setEmail(QString* email) {
-    this->email = email;
+void SWGUser::setUsername(const QString &username)
+{
+    d->username = username;
 }
 
-QString*
-SWGUser::getPassword() {
-    return password;
-}
-void
-SWGUser::setPassword(QString* password) {
-    this->password = password;
+QString SWGUser::firstName() const
+{
+    return d->first_name;
 }
 
-QString*
-SWGUser::getPhone() {
-    return phone;
-}
-void
-SWGUser::setPhone(QString* phone) {
-    this->phone = phone;
+void SWGUser::setFirstName(const QString &first_name)
+{
+    d->first_name = first_name;
 }
 
-qint32
-SWGUser::getUserStatus() {
-    return user_status;
-}
-void
-SWGUser::setUserStatus(qint32 user_status) {
-    this->user_status = user_status;
+QString SWGUser::lastName() const
+{
+    return d->last_name;
 }
 
+void SWGUser::setLastName(const QString &last_name)
+{
+    d->last_name = last_name;
+}
+
+QString SWGUser::email() const
+{
+    return d->email;
+}
+
+void SWGUser::setEmail(const QString &email)
+{
+    d->email = email;
+}
+
+QString SWGUser::password() const
+{
+    return d->password;
+}
+
+void SWGUser::setPassword(const QString &password)
+{
+    d->password = password;
+}
+
+QString SWGUser::phone() const
+{
+    return d->phone;
+}
+
+void SWGUser::setPhone(const QString &phone)
+{
+    d->phone = phone;
+}
+
+qint32 SWGUser::userStatus() const
+{
+    return d->user_status;
+}
+
+void SWGUser::setUserStatus(const qint32 &user_status)
+{
+    d->user_status = user_status;
+}
 
 
 } /* namespace Swagger */

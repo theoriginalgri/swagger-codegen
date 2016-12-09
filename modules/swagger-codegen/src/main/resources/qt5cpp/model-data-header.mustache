@@ -1,0 +1,46 @@
+{{>licenseInfo}}
+{{#models}}{{#model}}/*
+* {{classname}}.h
+*
+* {{description}}
+*/
+
+#ifndef {{classname}}_PRIVATE_H_
+#define {{classname}}_PRIVATE_H_
+
+{{/model}}{{/models}}
+{{#imports}}{{{import}}}
+{{/imports}}
+#include <QSharedData>
+
+{{#models}}{{#model}}
+namespace Swagger {
+
+class {{classname}}Data : public QSharedData {
+public:
+    {{classname}}Data()
+    : QSharedData(){{#vars}}{{#defaultValue}}, {{name}}({{{defaultValue}}}){{/defaultValue}}{{/vars}}
+    {
+    }
+
+    {{classname}}Data(const {{classname}}Data &other)
+    : QSharedData(other)
+    {{#vars}}
+    , {{name}}(other.{{name}})
+    {{/vars}}
+    {
+    }
+
+    ~{{classname}}Data() {
+    }
+
+    {{#vars}}
+    {{{datatype}}} {{name}};
+    {{/vars}}
+};
+
+} /* namespace Swagger */
+
+#endif /* {{classname}}_PRIVATE_H_ */
+{{/model}}
+{{/models}}

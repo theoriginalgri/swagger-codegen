@@ -12,116 +12,53 @@
 
 
 #include "SWGApiResponse.h"
-
-#include "SWGHelpers.h"
-
-#include <QJsonDocument>
-#include <QJsonArray>
-#include <QObject>
-#include <QDebug>
+#include "SWGApiResponse_p.h"
 
 namespace Swagger {
 
-
-SWGApiResponse::SWGApiResponse(QString* json) {
-    init();
-    this->fromJson(*json);
-}
-
-SWGApiResponse::SWGApiResponse() {
-    init();
-}
-
-SWGApiResponse::~SWGApiResponse() {
-    this->cleanup();
-}
-
-void
-SWGApiResponse::init() {
-    code = 0;
-    type = new QString("");
-    message = new QString("");
-}
-
-void
-SWGApiResponse::cleanup() {
-    
-
-    if(type != nullptr) {
-        delete type;
-    }
-
-    if(message != nullptr) {
-        delete message;
-    }
-}
-
-SWGApiResponse*
-SWGApiResponse::fromJson(QString &json) {
-    QByteArray array (json.toStdString().c_str());
-    QJsonDocument doc = QJsonDocument::fromJson(array);
-    QJsonObject jsonObject = doc.object();
-    this->fromJsonObject(jsonObject);
-    return this;
-}
-
-void
-SWGApiResponse::fromJsonObject(QJsonObject &pJson) {
-    ::Swagger::setValue(&code, pJson["code"], "qint32", "");
-    ::Swagger::setValue(&type, pJson["type"], "QString", "QString");
-    ::Swagger::setValue(&message, pJson["message"], "QString", "QString");
-}
-
-QString
-SWGApiResponse::asJson ()
+SWGApiResponse::SWGApiResponse()
+: d(new SWGApiResponseData)
 {
-    QJsonObject* obj = this->asJsonObject();
-    
-    QJsonDocument doc(*obj);
-    QByteArray bytes = doc.toJson();
-    return QString(bytes);
 }
 
-QJsonObject*
-SWGApiResponse::asJsonObject() {
-    QJsonObject* obj = new QJsonObject();
-    
-    obj->insert("code", QJsonValue(code));
-
-    toJsonValue(QString("type"), type, obj, QString("QString"));
-
-    toJsonValue(QString("message"), message, obj, QString("QString"));
-
-    return obj;
+SWGApiResponse::SWGApiResponse(const SWGApiResponse &other)
+: d(other.d)
+{
 }
 
-qint32
-SWGApiResponse::getCode() {
-    return code;
-}
-void
-SWGApiResponse::setCode(qint32 code) {
-    this->code = code;
+SWGApiResponse::~SWGApiResponse()
+{
 }
 
-QString*
-SWGApiResponse::getType() {
-    return type;
-}
-void
-SWGApiResponse::setType(QString* type) {
-    this->type = type;
+qint32 SWGApiResponse::code() const
+{
+    return d->code;
 }
 
-QString*
-SWGApiResponse::getMessage() {
-    return message;
-}
-void
-SWGApiResponse::setMessage(QString* message) {
-    this->message = message;
+void SWGApiResponse::setCode(const qint32 &code)
+{
+    d->code = code;
 }
 
+QString SWGApiResponse::type() const
+{
+    return d->type;
+}
+
+void SWGApiResponse::setType(const QString &type)
+{
+    d->type = type;
+}
+
+QString SWGApiResponse::message() const
+{
+    return d->message;
+}
+
+void SWGApiResponse::setMessage(const QString &message)
+{
+    d->message = message;
+}
 
 
 } /* namespace Swagger */

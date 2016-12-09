@@ -11,25 +11,23 @@
 
 namespace Swagger {
 
-class {{classname}}: public QObject {
+class {{classname}} : public QObject
+{
     Q_OBJECT
 
 public:
-    {{classname}}();
-    {{classname}}(QString host, QString basePath);
+    explicit {{classname}}(QObject *parent = Q_NULLPTR);
+    {{classname}}(const SwaggerConfig &config, QObject *parent = Q_NULLPTR);
     ~{{classname}}();
 
-    QString host;
-    QString basePath;
+    void setConfig(const SwaggerConfig &config);
+    SwaggerConfig config() const;
 
-    {{#operations}}{{#operation}}void {{nickname}}({{#allParams}}{{{dataType}}} {{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}});
+    {{#operations}}{{#operation}}Promise<{{{returnType}}}> {{nickname}}({{#allParams}}const {{{dataType}}} &{{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}});
     {{/operation}}{{/operations}}
+
 private:
-    {{#operations}}{{#operation}}void {{nickname}}Callback (HttpRequestWorker * worker);
-    {{/operation}}{{/operations}}
-signals:
-    {{#operations}}{{#operation}}void {{nickname}}Signal({{#returnType}}{{{returnType}}} summary{{/returnType}});
-    {{/operation}}{{/operations}}
+    SwaggerConfig config;
 };
 }
 #endif

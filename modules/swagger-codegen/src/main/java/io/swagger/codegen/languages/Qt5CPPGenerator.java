@@ -1,9 +1,6 @@
 package io.swagger.codegen.languages;
 
-import io.swagger.codegen.CodegenConfig;
-import io.swagger.codegen.CodegenType;
-import io.swagger.codegen.DefaultCodegen;
-import io.swagger.codegen.SupportingFile;
+import io.swagger.codegen.*;
 import io.swagger.models.properties.ArrayProperty;
 import io.swagger.models.properties.BooleanProperty;
 import io.swagger.models.properties.DateProperty;
@@ -55,6 +52,11 @@ public class Qt5CPPGenerator extends DefaultCodegen implements CodegenConfig {
                 "model-body.mustache",
                 ".cpp");
 
+        modelTemplateFiles.put(
+                "model-data-header.mustache",
+                "_p.h"
+        );
+
         /*
          * Api classes.  You can write classes for each Api file with the apiTemplateFiles map.
          * as with models, add multiple entries with different extensions for multiple files per
@@ -103,6 +105,10 @@ public class Qt5CPPGenerator extends DefaultCodegen implements CodegenConfig {
                         "double")
         );
 
+        supportingFiles.add(new SupportingFile("json-serializer-header.mustache", sourceFolder, "JsonSerializer.h"));
+        supportingFiles.add(new SupportingFile("json-serializer-body.mustache", sourceFolder, "JsonSerializer.cpp"));
+        supportingFiles.add(new SupportingFile("config-header.mustache", sourceFolder, "SwaggerConfig.h"));
+        supportingFiles.add(new SupportingFile("config-body.mustache", sourceFolder, "SwaggerConfig.cpp"));
         supportingFiles.add(new SupportingFile("helpers-header.mustache", sourceFolder, PREFIX + "Helpers.h"));
         supportingFiles.add(new SupportingFile("helpers-body.mustache", sourceFolder, PREFIX + "Helpers.cpp"));
         supportingFiles.add(new SupportingFile("HttpRequest.h.mustache", sourceFolder, PREFIX + "HttpRequest.h"));
@@ -122,10 +128,10 @@ public class Qt5CPPGenerator extends DefaultCodegen implements CodegenConfig {
         typeMapping.put("map", "QMap");
         typeMapping.put("file", "SWGHttpRequestInputFileElement");
         typeMapping.put("object", PREFIX + "Object");
-        //TODO binary should be mapped to byte array
         // mapped to String as a workaround
-        typeMapping.put("binary", "QString");
+        typeMapping.put("binary", "QByteArray");
         typeMapping.put("ByteArray", "QByteArray");
+        typeMapping.put("UUID", "QUuid");
 
         importMapping = new HashMap<String, String>();
 
@@ -141,6 +147,7 @@ public class Qt5CPPGenerator extends DefaultCodegen implements CodegenConfig {
         systemIncludes.add("QDate");
         systemIncludes.add("QDateTime");
         systemIncludes.add("QByteArray");
+        systemIncludes.add("QUuid");
     }
 
     /**
@@ -174,6 +181,14 @@ public class Qt5CPPGenerator extends DefaultCodegen implements CodegenConfig {
     @Override
     public String getHelp() {
         return "Generates a qt5 C++ client library.";
+    }
+
+    @Override
+    public CodegenProperty fromProperty(String name, Property p) {
+        CodegenProperty property =  super.fromProperty(name, p);
+        // We don't want the "get" prefix with Qt
+        property.getter = camelize(toVarName(name), true);
+        return property;
     }
 
     @Override
@@ -246,31 +261,27 @@ public class Qt5CPPGenerator extends DefaultCodegen implements CodegenConfig {
         if (p instanceof ArrayProperty) {
             ArrayProperty ap = (ArrayProperty) p;
             Property inner = ap.getItems();
-            return getSwaggerType(p) + "<" + getTypeDeclaration(inner) + ">*";
+            return getSwaggerType(p) + "<" + getTypeDeclaration(inner) + ">";
         } else if (p instanceof MapProperty) {
             MapProperty mp = (MapProperty) p;
             Property inner = mp.getAdditionalProperties();
-            return getSwaggerType(p) + "<QString, " + getTypeDeclaration(inner) + ">*";
+            return getSwaggerType(p) + "<QString, " + getTypeDeclaration(inner) + ">";
         }
         if (foundationClasses.contains(swaggerType)) {
-            return swaggerType + "*";
+            return swaggerType;
         } else if (languageSpecificPrimitives.contains(swaggerType)) {
             return toModelName(swaggerType);
         } else {
-            return swaggerType + "*";
+            return swaggerType;
         }
     }
 
     @Override
     public String toDefaultValue(Property p) {
-        if (p instanceof StringProperty) {
-            return "new QString(\"\")";
-        } else if (p instanceof BooleanProperty) {
+        // Qt5: We only set the default value of basic types, all others have default constructors.
+
+        if (p instanceof BooleanProperty) {
             return "false";
-        } else if (p instanceof DateProperty) {
-            return "NULL";
-        } else if (p instanceof DateTimeProperty) {
-            return "NULL";
         } else if (p instanceof DoubleProperty) {
             return "0.0";
         } else if (p instanceof FloatProperty) {
@@ -280,29 +291,14 @@ public class Qt5CPPGenerator extends DefaultCodegen implements CodegenConfig {
         } else if (p instanceof LongProperty) {
             return "0L";
         } else if (p instanceof BaseIntegerProperty) {
-            // catchall for any other format of the swagger specifiction
+            // catchall for any other format of the swagger specification
             // integer type not explicitly handled above
             return "0";
         } else if (p instanceof DecimalProperty) {
             return "0.0";
-        } else if (p instanceof MapProperty) {
-            MapProperty ap = (MapProperty) p;
-            String inner = getSwaggerType(ap.getAdditionalProperties());
-            return "new QMap<QString, " + inner + ">()";
-        } else if (p instanceof ArrayProperty) {
-            ArrayProperty ap = (ArrayProperty) p;
-            String inner = getSwaggerType(ap.getItems());
-            if (!languageSpecificPrimitives.contains(inner)) {
-                inner += "*";
-            }
-            return "new QList<" + inner + ">()";
         }
-        // else
-        if (p instanceof RefProperty) {
-            RefProperty rp = (RefProperty) p;
-            return "new " + toModelName(rp.getSimpleRef()) + "()";
-        }
-        return "NULL";
+
+        return null;
     }
 
 

@@ -1,0 +1,54 @@
+{{>licenseInfo}}
+
+#include "JsonSerializer.h"
+
+#include <QJsonArray>
+#include <QJsonObject>
+
+namespace Swagger {
+
+JsonSerializer::JsonSerializer()
+{
+}
+
+JsonSerializer::~JsonSerializer()
+{
+}
+
+{{#models}}{{#model}}
+QJsonValue JsonSerializer::toJson(const {{classname}} &value)
+{
+    QJsonObject obj;
+    {{#vars}}
+    {{#isPrimitiveType}}
+    obj.insert("{{name}}", value.{{getter}}());{{#required}} // required{{/required}}
+    {{/isPrimitiveType}}
+    {{^isPrimitiveType}}
+    {{#isContainer}}
+    obj.insert("{{name}}", toJson(value.{{getter}}());{{#required}} // required{{/required}}
+    {{/isContainer}}
+    {{#isString}}
+    obj.insert("{{name}}", value.{{getter}}());
+    {{/isString}}
+    {{^isString}}
+    {{#complexType}}
+    obj.insert("{{name}}", toJson(value.{{getter}}()));{{#required}} // required{{/required}}
+    {{/complexType}}
+    {{/isString}}
+    {{/isPrimitiveType}}
+    {{/vars}}
+    return obj;
+}
+
+{{classname}} JsonSerializer::fromJson(const QJsonValue &json)
+{
+    {{classname}} obj;
+    {{#vars}}
+    {{#isPrimitiveType}}
+    {{/isPrimitiveType}}
+    {{/vars}}
+    return obj;
+}
+{{/model}}{{/models}}
+
+}

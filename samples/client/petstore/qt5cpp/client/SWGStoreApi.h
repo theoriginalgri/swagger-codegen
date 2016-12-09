@@ -23,34 +23,26 @@
 
 namespace Swagger {
 
-class SWGStoreApi: public QObject {
+class SWGStoreApi : public QObject
+{
     Q_OBJECT
 
 public:
-    SWGStoreApi();
-    SWGStoreApi(QString host, QString basePath);
+    explicit SWGStoreApi(QObject *parent = Q_NULLPTR);
+    SWGStoreApi(const SwaggerConfig &config, QObject *parent = Q_NULLPTR);
     ~SWGStoreApi();
 
-    QString host;
-    QString basePath;
+    void setConfig(const SwaggerConfig &config);
+    SwaggerConfig config() const;
 
-    void deleteOrder(QString* order_id);
-    void getInventory();
-    void getOrderById(qint64 order_id);
-    void placeOrder(SWGOrder body);
+    Promise<> deleteOrder(const QString &order_id);
+    Promise<QMap<QString, qint32>> getInventory();
+    Promise<SWGOrder> getOrderById(const qint64 &order_id);
+    Promise<SWGOrder> placeOrder(const SWGOrder &body);
     
+
 private:
-    void deleteOrderCallback (HttpRequestWorker * worker);
-    void getInventoryCallback (HttpRequestWorker * worker);
-    void getOrderByIdCallback (HttpRequestWorker * worker);
-    void placeOrderCallback (HttpRequestWorker * worker);
-    
-signals:
-    void deleteOrderSignal();
-    void getInventorySignal(QMap<QString, qint32>* summary);
-    void getOrderByIdSignal(SWGOrder* summary);
-    void placeOrderSignal(SWGOrder* summary);
-    
+    SwaggerConfig config;
 };
 }
 #endif

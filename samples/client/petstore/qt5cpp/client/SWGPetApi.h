@@ -24,46 +24,30 @@
 
 namespace Swagger {
 
-class SWGPetApi: public QObject {
+class SWGPetApi : public QObject
+{
     Q_OBJECT
 
 public:
-    SWGPetApi();
-    SWGPetApi(QString host, QString basePath);
+    explicit SWGPetApi(QObject *parent = Q_NULLPTR);
+    SWGPetApi(const SwaggerConfig &config, QObject *parent = Q_NULLPTR);
     ~SWGPetApi();
 
-    QString host;
-    QString basePath;
+    void setConfig(const SwaggerConfig &config);
+    SwaggerConfig config() const;
 
-    void addPet(SWGPet body);
-    void deletePet(qint64 pet_id, QString* api_key);
-    void findPetsByStatus(QList<QString*>* status);
-    void findPetsByTags(QList<QString*>* tags);
-    void getPetById(qint64 pet_id);
-    void updatePet(SWGPet body);
-    void updatePetWithForm(qint64 pet_id, QString* name, QString* status);
-    void uploadFile(qint64 pet_id, QString* additional_metadata, SWGHttpRequestInputFileElement* file);
+    Promise<> addPet(const SWGPet &body);
+    Promise<> deletePet(const qint64 &pet_id, const QString &api_key);
+    Promise<QList<SWGPet>> findPetsByStatus(const QList<QString> &status);
+    Promise<QList<SWGPet>> findPetsByTags(const QList<QString> &tags);
+    Promise<SWGPet> getPetById(const qint64 &pet_id);
+    Promise<> updatePet(const SWGPet &body);
+    Promise<> updatePetWithForm(const qint64 &pet_id, const QString &name, const QString &status);
+    Promise<SWGApiResponse> uploadFile(const qint64 &pet_id, const QString &additional_metadata, const SWGHttpRequestInputFileElement &file);
     
+
 private:
-    void addPetCallback (HttpRequestWorker * worker);
-    void deletePetCallback (HttpRequestWorker * worker);
-    void findPetsByStatusCallback (HttpRequestWorker * worker);
-    void findPetsByTagsCallback (HttpRequestWorker * worker);
-    void getPetByIdCallback (HttpRequestWorker * worker);
-    void updatePetCallback (HttpRequestWorker * worker);
-    void updatePetWithFormCallback (HttpRequestWorker * worker);
-    void uploadFileCallback (HttpRequestWorker * worker);
-    
-signals:
-    void addPetSignal();
-    void deletePetSignal();
-    void findPetsByStatusSignal(QList<SWGPet*>* summary);
-    void findPetsByTagsSignal(QList<SWGPet*>* summary);
-    void getPetByIdSignal(SWGPet* summary);
-    void updatePetSignal();
-    void updatePetWithFormSignal();
-    void uploadFileSignal(SWGApiResponse* summary);
-    
+    SwaggerConfig config;
 };
 }
 #endif

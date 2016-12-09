@@ -1,0 +1,40 @@
+{{>licenseInfo}}
+
+#ifndef JSON_SERIALIZER_H_
+#define JSON_SERIALIZER_H_
+
+// Include models
+{{#models}}{{#model}}#include "{{classname}}.h"
+{{/model}}{{/models}}
+#include <QJsonValue>
+
+namespace Swagger {
+
+class JsonSerializer
+{
+public:
+    JsonSerializer();
+    virtual ~JsonSerializer();
+{{#models}}{{#model}}
+    virtual QJsonValue toJson(const {{classname}} &value);
+    virtual {{classname}} fromJson(const QJsonValue &json);
+{{/model}}{{/models}}
+    virtual QJsonValue toJson(const QDateTime &dateTime);
+    virtual QDateTime fromJson(const QJsonValue &json);
+
+    virtual QJsonValue toJson(const QByteArray &byteArray);
+    virtual QByteArray fromJson(const QJsonValue &json);
+
+    virtual QJsonValue toJson(const QUuid &uuid);
+    virtual QUuid fromJson(const QJsonValue &json);
+
+    template <typename T>
+    virtual QJsonValue toJson(const QList<T> &list);
+
+    template <typename T>
+    virtual QJsonValue fromJson(const QJsonArray &list);
+};
+
+}
+
+#endif // JSON_SERIALIZER_H_

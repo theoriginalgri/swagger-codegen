@@ -8,43 +8,35 @@
 #ifndef {{classname}}_H_
 #define {{classname}}_H_
 
-#include <QJsonObject>
-
+#include "SwaggerConfig.h"
 {{/model}}{{/models}}
 {{#imports}}{{{import}}}
 {{/imports}}
-
-#include "SWGObject.h"
+#include <QSharedDataPointer>
 
 {{#models}}{{#model}}
 namespace Swagger {
 
-class {{classname}}: public SWGObject {
+class {{classname}}Data;
+
+class {{classname}} {
 public:
     {{classname}}();
-    {{classname}}(QString* json);
-    virtual ~{{classname}}();
-    void init();
-    void cleanup();
-
-    QString asJson ();
-    QJsonObject* asJsonObject();
-    void fromJsonObject(QJsonObject &json);
-    {{classname}}* fromJson(QString &jsonString);
+    {{classname}}(const {{classname}} &other);
+    ~{{classname}}();
 
     {{#vars}}
-    {{{datatype}}} {{getter}}();
-    void {{setter}}({{{datatype}}} {{name}});
+    {{{datatype}}} {{getter}}() const;
+    void {{setter}}(const {{{datatype}}} &{{name}});
 
     {{/vars}}
-
 private:
-    {{#vars}}
-    {{{datatype}}} {{name}};
-    {{/vars}}
+    QSharedDataPointer<{{classname}}Data> d;
 };
 
 } /* namespace Swagger */
+
+Q_DECLARE_TYPEINFO(Swagger::{{classname}}, Q_MOVABLE_TYPE);
 
 #endif /* {{classname}}_H_ */
 {{/model}}

@@ -19,65 +19,52 @@
 #ifndef SWGUser_H_
 #define SWGUser_H_
 
-#include <QJsonObject>
-
+#include "SwaggerConfig.h"
 
 #include <QString>
-
-#include "SWGObject.h"
+#include <QSharedDataPointer>
 
 
 namespace Swagger {
 
-class SWGUser: public SWGObject {
+class SWGUserData;
+
+class SWGUser {
 public:
     SWGUser();
-    SWGUser(QString* json);
-    virtual ~SWGUser();
-    void init();
-    void cleanup();
+    SWGUser(const SWGUser &other);
+    ~SWGUser();
 
-    QString asJson ();
-    QJsonObject* asJsonObject();
-    void fromJsonObject(QJsonObject &json);
-    SWGUser* fromJson(QString &jsonString);
+    qint64 id() const;
+    void setId(const qint64 &id);
 
-    qint64 getId();
-    void setId(qint64 id);
+    QString username() const;
+    void setUsername(const QString &username);
 
-    QString* getUsername();
-    void setUsername(QString* username);
+    QString firstName() const;
+    void setFirstName(const QString &first_name);
 
-    QString* getFirstName();
-    void setFirstName(QString* first_name);
+    QString lastName() const;
+    void setLastName(const QString &last_name);
 
-    QString* getLastName();
-    void setLastName(QString* last_name);
+    QString email() const;
+    void setEmail(const QString &email);
 
-    QString* getEmail();
-    void setEmail(QString* email);
+    QString password() const;
+    void setPassword(const QString &password);
 
-    QString* getPassword();
-    void setPassword(QString* password);
+    QString phone() const;
+    void setPhone(const QString &phone);
 
-    QString* getPhone();
-    void setPhone(QString* phone);
-
-    qint32 getUserStatus();
-    void setUserStatus(qint32 user_status);
-
+    qint32 userStatus() const;
+    void setUserStatus(const qint32 &user_status);
 
 private:
-    qint64 id;
-    QString* username;
-    QString* first_name;
-    QString* last_name;
-    QString* email;
-    QString* password;
-    QString* phone;
-    qint32 user_status;
+    QSharedDataPointer<SWGUserData> d;
 };
 
 } /* namespace Swagger */
+
+Q_DECLARE_TYPEINFO(Swagger::SWGUser, Q_MOVABLE_TYPE);
 
 #endif /* SWGUser_H_ */

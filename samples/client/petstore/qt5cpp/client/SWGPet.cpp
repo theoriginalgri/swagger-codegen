@@ -12,183 +12,83 @@
 
 
 #include "SWGPet.h"
-
-#include "SWGHelpers.h"
-
-#include <QJsonDocument>
-#include <QJsonArray>
-#include <QObject>
-#include <QDebug>
+#include "SWGPet_p.h"
 
 namespace Swagger {
 
-
-SWGPet::SWGPet(QString* json) {
-    init();
-    this->fromJson(*json);
-}
-
-SWGPet::SWGPet() {
-    init();
-}
-
-SWGPet::~SWGPet() {
-    this->cleanup();
-}
-
-void
-SWGPet::init() {
-    id = 0L;
-    category = new SWGCategory();
-    name = new QString("");
-    photo_urls = new QList<QString*>();
-    tags = new QList<SWGTag*>();
-    status = new QString("");
-}
-
-void
-SWGPet::cleanup() {
-    
-
-    if(category != nullptr) {
-        delete category;
-    }
-
-    if(name != nullptr) {
-        delete name;
-    }
-
-    if(photo_urls != nullptr) {
-        QList<QString*>* arr = photo_urls;
-        foreach(QString* o, *arr) {
-            delete o;
-        }
-        delete photo_urls;
-    }
-
-    if(tags != nullptr) {
-        QList<SWGTag*>* arr = tags;
-        foreach(SWGTag* o, *arr) {
-            delete o;
-        }
-        delete tags;
-    }
-
-    if(status != nullptr) {
-        delete status;
-    }
-}
-
-SWGPet*
-SWGPet::fromJson(QString &json) {
-    QByteArray array (json.toStdString().c_str());
-    QJsonDocument doc = QJsonDocument::fromJson(array);
-    QJsonObject jsonObject = doc.object();
-    this->fromJsonObject(jsonObject);
-    return this;
-}
-
-void
-SWGPet::fromJsonObject(QJsonObject &pJson) {
-    ::Swagger::setValue(&id, pJson["id"], "qint64", "");
-    ::Swagger::setValue(&category, pJson["category"], "SWGCategory", "SWGCategory");
-    ::Swagger::setValue(&name, pJson["name"], "QString", "QString");
-    
-    ::Swagger::setValue(&photo_urls, pJson["photoUrls"], "QList", "QString");
-    
-    
-    ::Swagger::setValue(&tags, pJson["tags"], "QList", "SWGTag");
-    
-    ::Swagger::setValue(&status, pJson["status"], "QString", "QString");
-}
-
-QString
-SWGPet::asJson ()
+SWGPet::SWGPet()
+: d(new SWGPetData)
 {
-    QJsonObject* obj = this->asJsonObject();
-    
-    QJsonDocument doc(*obj);
-    QByteArray bytes = doc.toJson();
-    return QString(bytes);
 }
 
-QJsonObject*
-SWGPet::asJsonObject() {
-    QJsonObject* obj = new QJsonObject();
-    
-    obj->insert("id", QJsonValue(id));
-
-    toJsonValue(QString("category"), category, obj, QString("SWGCategory"));
-
-    toJsonValue(QString("name"), name, obj, QString("QString"));
-
-    QJsonArray photo_urlsJsonArray;
-    toJsonArray((QList<void*>*)photo_urls, &photo_urlsJsonArray, "photo_urls", "QString");
-    obj->insert("photoUrls", photo_urlsJsonArray);
-
-    QJsonArray tagsJsonArray;
-    toJsonArray((QList<void*>*)tags, &tagsJsonArray, "tags", "SWGTag");
-    obj->insert("tags", tagsJsonArray);
-
-    toJsonValue(QString("status"), status, obj, QString("QString"));
-
-    return obj;
+SWGPet::SWGPet(const SWGPet &other)
+: d(other.d)
+{
 }
 
-qint64
-SWGPet::getId() {
-    return id;
-}
-void
-SWGPet::setId(qint64 id) {
-    this->id = id;
+SWGPet::~SWGPet()
+{
 }
 
-SWGCategory*
-SWGPet::getCategory() {
-    return category;
-}
-void
-SWGPet::setCategory(SWGCategory* category) {
-    this->category = category;
+qint64 SWGPet::id() const
+{
+    return d->id;
 }
 
-QString*
-SWGPet::getName() {
-    return name;
-}
-void
-SWGPet::setName(QString* name) {
-    this->name = name;
+void SWGPet::setId(const qint64 &id)
+{
+    d->id = id;
 }
 
-QList<QString*>*
-SWGPet::getPhotoUrls() {
-    return photo_urls;
-}
-void
-SWGPet::setPhotoUrls(QList<QString*>* photo_urls) {
-    this->photo_urls = photo_urls;
+SWGCategory SWGPet::category() const
+{
+    return d->category;
 }
 
-QList<SWGTag*>*
-SWGPet::getTags() {
-    return tags;
-}
-void
-SWGPet::setTags(QList<SWGTag*>* tags) {
-    this->tags = tags;
+void SWGPet::setCategory(const SWGCategory &category)
+{
+    d->category = category;
 }
 
-QString*
-SWGPet::getStatus() {
-    return status;
-}
-void
-SWGPet::setStatus(QString* status) {
-    this->status = status;
+QString SWGPet::name() const
+{
+    return d->name;
 }
 
+void SWGPet::setName(const QString &name)
+{
+    d->name = name;
+}
+
+QList<QString> SWGPet::photoUrls() const
+{
+    return d->photo_urls;
+}
+
+void SWGPet::setPhotoUrls(const QList<QString> &photo_urls)
+{
+    d->photo_urls = photo_urls;
+}
+
+QList<SWGTag> SWGPet::tags() const
+{
+    return d->tags;
+}
+
+void SWGPet::setTags(const QList<SWGTag> &tags)
+{
+    d->tags = tags;
+}
+
+QString SWGPet::status() const
+{
+    return d->status;
+}
+
+void SWGPet::setStatus(const QString &status)
+{
+    d->status = status;
+}
 
 
 } /* namespace Swagger */

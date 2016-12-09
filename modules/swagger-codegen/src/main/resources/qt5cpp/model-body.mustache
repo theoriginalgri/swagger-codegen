@@ -1,112 +1,36 @@
 {{>licenseInfo}}
 {{#models}}{{#model}}
 #include "{{classname}}.h"
-
-#include "SWGHelpers.h"
-
-#include <QJsonDocument>
-#include <QJsonArray>
-#include <QObject>
-#include <QDebug>
+#include "{{classname}}_p.h"
 
 namespace Swagger {
 
-
-{{classname}}::{{classname}}(QString* json) {
-    init();
-    this->fromJson(*json);
-}
-
-{{classname}}::{{classname}}() {
-    init();
-}
-
-{{classname}}::~{{classname}}() {
-    this->cleanup();
-}
-
-void
-{{classname}}::init() {
-    {{#vars}}
-    {{name}} = {{{defaultValue}}};
-    {{/vars}}
-}
-
-void
-{{classname}}::cleanup() {
-    {{#vars}}{{#complexType}}
-    if({{name}} != nullptr) {
-        {{#isContainer}}QList<{{complexType}}*>* arr = {{name}};
-        foreach({{complexType}}* o, *arr) {
-            delete o;
-        }
-        {{/isContainer}}delete {{name}};
-    }{{/complexType}}
-    {{/vars}}
-}
-
-{{classname}}*
-{{classname}}::fromJson(QString &json) {
-    QByteArray array (json.toStdString().c_str());
-    QJsonDocument doc = QJsonDocument::fromJson(array);
-    QJsonObject jsonObject = doc.object();
-    this->fromJsonObject(jsonObject);
-    return this;
-}
-
-void
-{{classname}}::fromJsonObject(QJsonObject &pJson) {
-    {{#vars}}
-    {{^isContainer}}::Swagger::setValue(&{{name}}, pJson["{{baseName}}"], "{{baseType}}", "{{complexType}}");{{/isContainer}}
-    {{#isContainer}}
-    {{#complexType}}::Swagger::setValue(&{{name}}, pJson["{{baseName}}"], "{{baseType}}", "{{complexType}}");{{/complexType}}
-    {{^complexType}}::Swagger::setValue(&{{name}}, pJson["{{baseName}}"], "{{baseType}}", "{{items.baseType}}");{{/complexType}}
-    {{/isContainer}}
-    {{/vars}}
-}
-
-QString
-{{classname}}::asJson ()
+{{classname}}::{{classname}}()
+: d(new {{classname}}Data)
 {
-    QJsonObject* obj = this->asJsonObject();
-    
-    QJsonDocument doc(*obj);
-    QByteArray bytes = doc.toJson();
-    return QString(bytes);
 }
 
-QJsonObject*
-{{classname}}::asJsonObject() {
-    QJsonObject* obj = new QJsonObject();
-    {{#vars}}{{#complexType}}{{^isContainer}}{{#complexType}}
-    toJsonValue(QString("{{baseName}}"), {{name}}, obj, QString("{{complexType}}"));{{/complexType}}{{^complexType}}
-    if({{name}} != nullptr && *{{name}} != nullptr) { 
-        obj->insert("{{name}}", QJsonValue(*{{name}}));
-    }{{/complexType}}{{/isContainer}}{{#isContainer}}
-    QJsonArray {{name}}JsonArray;
-    toJsonArray((QList<void*>*){{name}}, &{{name}}JsonArray, "{{name}}", "{{complexType}}");
-    obj->insert("{{baseName}}", {{name}}JsonArray);{{/isContainer}}{{/complexType}}{{^complexType}}{{^isContainer}}
-    obj->insert("{{baseName}}", QJsonValue({{name}}));{{/isContainer}}{{#isContainer}}
-    QJsonArray {{name}}JsonArray;
-    toJsonArray((QList<void*>*){{name}}, &{{name}}JsonArray, "{{name}}", "{{items.baseType}}");
-    obj->insert("{{baseName}}", {{name}}JsonArray);{{/isContainer}}{{/complexType}}
-    {{/vars}}
+{{classname}}::{{classname}}(const {{classname}} &other)
+: d(other.d)
+{
+}
 
-    return obj;
+{{classname}}::~{{classname}}()
+{
 }
 
 {{#vars}}
-{{{datatype}}}
-{{classname}}::{{getter}}() {
-    return {{name}};
+{{{datatype}}} {{classname}}::{{getter}}() const
+{
+    return d->{{name}};
 }
-void
-{{classname}}::{{setter}}({{{datatype}}} {{name}}) {
-    this->{{name}} = {{name}};
+
+void {{classname}}::{{setter}}(const {{{datatype}}} &{{name}})
+{
+    d->{{name}} = {{name}};
 }
 
 {{/vars}}
-
 
 } /* namespace Swagger */
 

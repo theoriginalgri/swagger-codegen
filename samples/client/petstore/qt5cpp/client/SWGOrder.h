@@ -19,58 +19,47 @@
 #ifndef SWGOrder_H_
 #define SWGOrder_H_
 
-#include <QJsonObject>
-
+#include "SwaggerConfig.h"
 
 #include <QDateTime>
 #include <QString>
-
-#include "SWGObject.h"
+#include <QSharedDataPointer>
 
 
 namespace Swagger {
 
-class SWGOrder: public SWGObject {
+class SWGOrderData;
+
+class SWGOrder {
 public:
     SWGOrder();
-    SWGOrder(QString* json);
-    virtual ~SWGOrder();
-    void init();
-    void cleanup();
+    SWGOrder(const SWGOrder &other);
+    ~SWGOrder();
 
-    QString asJson ();
-    QJsonObject* asJsonObject();
-    void fromJsonObject(QJsonObject &json);
-    SWGOrder* fromJson(QString &jsonString);
+    qint64 id() const;
+    void setId(const qint64 &id);
 
-    qint64 getId();
-    void setId(qint64 id);
+    qint64 petId() const;
+    void setPetId(const qint64 &pet_id);
 
-    qint64 getPetId();
-    void setPetId(qint64 pet_id);
+    qint32 quantity() const;
+    void setQuantity(const qint32 &quantity);
 
-    qint32 getQuantity();
-    void setQuantity(qint32 quantity);
+    QDateTime shipDate() const;
+    void setShipDate(const QDateTime &ship_date);
 
-    QDateTime* getShipDate();
-    void setShipDate(QDateTime* ship_date);
+    QString status() const;
+    void setStatus(const QString &status);
 
-    QString* getStatus();
-    void setStatus(QString* status);
-
-    bool getComplete();
-    void setComplete(bool complete);
-
+    bool complete() const;
+    void setComplete(const bool &complete);
 
 private:
-    qint64 id;
-    qint64 pet_id;
-    qint32 quantity;
-    QDateTime* ship_date;
-    QString* status;
-    bool complete;
+    QSharedDataPointer<SWGOrderData> d;
 };
 
 } /* namespace Swagger */
+
+Q_DECLARE_TYPEINFO(Swagger::SWGOrder, Q_MOVABLE_TYPE);
 
 #endif /* SWGOrder_H_ */

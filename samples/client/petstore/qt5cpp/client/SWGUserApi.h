@@ -23,46 +23,30 @@
 
 namespace Swagger {
 
-class SWGUserApi: public QObject {
+class SWGUserApi : public QObject
+{
     Q_OBJECT
 
 public:
-    SWGUserApi();
-    SWGUserApi(QString host, QString basePath);
+    explicit SWGUserApi(QObject *parent = Q_NULLPTR);
+    SWGUserApi(const SwaggerConfig &config, QObject *parent = Q_NULLPTR);
     ~SWGUserApi();
 
-    QString host;
-    QString basePath;
+    void setConfig(const SwaggerConfig &config);
+    SwaggerConfig config() const;
 
-    void createUser(SWGUser body);
-    void createUsersWithArrayInput(QList<SWGUser*>* body);
-    void createUsersWithListInput(QList<SWGUser*>* body);
-    void deleteUser(QString* username);
-    void getUserByName(QString* username);
-    void loginUser(QString* username, QString* password);
-    void logoutUser();
-    void updateUser(QString* username, SWGUser body);
+    Promise<> createUser(const SWGUser &body);
+    Promise<> createUsersWithArrayInput(const QList<SWGUser> &body);
+    Promise<> createUsersWithListInput(const QList<SWGUser> &body);
+    Promise<> deleteUser(const QString &username);
+    Promise<SWGUser> getUserByName(const QString &username);
+    Promise<QString> loginUser(const QString &username, const QString &password);
+    Promise<> logoutUser();
+    Promise<> updateUser(const QString &username, const SWGUser &body);
     
+
 private:
-    void createUserCallback (HttpRequestWorker * worker);
-    void createUsersWithArrayInputCallback (HttpRequestWorker * worker);
-    void createUsersWithListInputCallback (HttpRequestWorker * worker);
-    void deleteUserCallback (HttpRequestWorker * worker);
-    void getUserByNameCallback (HttpRequestWorker * worker);
-    void loginUserCallback (HttpRequestWorker * worker);
-    void logoutUserCallback (HttpRequestWorker * worker);
-    void updateUserCallback (HttpRequestWorker * worker);
-    
-signals:
-    void createUserSignal();
-    void createUsersWithArrayInputSignal();
-    void createUsersWithListInputSignal();
-    void deleteUserSignal();
-    void getUserByNameSignal(SWGUser* summary);
-    void loginUserSignal(QString* summary);
-    void logoutUserSignal();
-    void updateUserSignal();
-    
+    SwaggerConfig config;
 };
 }
 #endif
