@@ -19,6 +19,12 @@ namespace Swagger {
 {
 }
 
+{{classname}} &{{classname}}::operator =(const {{classname}} &other)
+{
+    d = other.d;
+    return *this;
+}
+
 {{#vars}}
 {{{datatype}}} {{classname}}::{{getter}}() const
 {

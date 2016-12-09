@@ -25,6 +25,8 @@ public:
     {{classname}}(const {{classname}} &other);
     ~{{classname}}();
 
+    {{classname}} &operator =(const {{classname}} &other);
+
     {{#vars}}
     {{{datatype}}} {{getter}}() const;
     void {{setter}}(const {{{datatype}}} &{{name}});

@@ -20,35 +20,79 @@ QJsonValue JsonSerializer::toJson(const {{classname}} &value)
 {
     QJsonObject obj;
     {{#vars}}
-    {{#isPrimitiveType}}
-    obj.insert("{{name}}", value.{{getter}}());{{#required}} // required{{/required}}
-    {{/isPrimitiveType}}
-    {{^isPrimitiveType}}
-    {{#isContainer}}
-    obj.insert("{{name}}", toJson(value.{{getter}}());{{#required}} // required{{/required}}
-    {{/isContainer}}
-    {{#isString}}
-    obj.insert("{{name}}", value.{{getter}}());
-    {{/isString}}
-    {{^isString}}
-    {{#complexType}}
     obj.insert("{{name}}", toJson(value.{{getter}}()));{{#required}} // required{{/required}}
-    {{/complexType}}
-    {{/isString}}
-    {{/isPrimitiveType}}
     {{/vars}}
     return obj;
 }
 
-{{classname}} JsonSerializer::fromJson(const QJsonValue &json)
+bool JsonSerializer::fromJson({{classname}} *dst, const QJsonValue &json)
 {
-    {{classname}} obj;
+/*
     {{#vars}}
-    {{#isPrimitiveType}}
-    {{/isPrimitiveType}}
+        {{#isPrimitiveType}}
+            obj.insert("{{name}}", value.{{getter}}());{{#required}} // required{{/required}}
+        {{/isPrimitiveType}}
+        {{^isPrimitiveType}}
+            {{#isContainer}}
+                obj.insert("{{name}}", toJson(value.{{getter}}()));{{#required}} // required{{/required}}
+            {{/isContainer}}
+            {{^isContainer}}
+                {{#isString}}
+                    obj.insert("{{name}}", value.{{getter}}());
+                {{/isString}}
+                {{^isString}}
+                    {{#complexType}}
+                        obj.insert("{{name}}", toJson(value.{{getter}}()));{{#required}} // required{{/required}}
+                    {{/complexType}}
+                {{/isString}}
+            {{/isContainer}}
+        {{/isPrimitiveType}}
     {{/vars}}
     return obj;
+    */
+
+    return false;
 }
 {{/model}}{{/models}}
+
+QJsonValue JsonSerializer::toJson(const QString &string)
+{
+    return string;
+}
+
+QJsonValue JsonSerializer::toJson(const qint32 &number)
+{
+    return number;
+}
+
+QJsonValue JsonSerializer::toJson(const qint64 &number)
+{
+    return number;
+}
+
+QJsonValue JsonSerializer::toJson(const float &number)
+{
+    return number;
+}
+
+QJsonValue JsonSerializer::toJson(const double &number)
+{
+    return number;
+}
+
+QJsonValue JsonSerializer::toJson(const QDateTime &dateTime)
+{
+    return dateTime.toString();
+}
+
+QJsonValue JsonSerializer::toJson(const QByteArray &byteArray)
+{
+    return QString::fromUtf8(byteArray);
+}
+
+QJsonValue JsonSerializer::toJson(const QUuid &uuid)
+{
+    return uuid.toString();
+}
 
 }

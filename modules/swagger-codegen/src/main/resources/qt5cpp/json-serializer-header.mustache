@@ -6,7 +6,9 @@
 // Include models
 {{#models}}{{#model}}#include "{{classname}}.h"
 {{/model}}{{/models}}
+#include <QUuid>
 #include <QJsonValue>
+#include <QJsonArray>
 
 namespace Swagger {
 
@@ -17,23 +19,32 @@ public:
     virtual ~JsonSerializer();
 {{#models}}{{#model}}
     virtual QJsonValue toJson(const {{classname}} &value);
-    virtual {{classname}} fromJson(const QJsonValue &json);
+    virtual bool fromJson({{classname}} *dst, const QJsonValue &json);
 {{/model}}{{/models}}
+    // Builtin types
+    virtual QJsonValue toJson(const QString &string);
+    virtual QJsonValue toJson(const qint32 &number);
+    virtual QJsonValue toJson(const qint64 &number);
+    virtual QJsonValue toJson(const float &number);
+    virtual QJsonValue toJson(const double &number);
     virtual QJsonValue toJson(const QDateTime &dateTime);
-    virtual QDateTime fromJson(const QJsonValue &json);
-
     virtual QJsonValue toJson(const QByteArray &byteArray);
-    virtual QByteArray fromJson(const QJsonValue &json);
-
     virtual QJsonValue toJson(const QUuid &uuid);
-    virtual QUuid fromJson(const QJsonValue &json);
 
     template <typename T>
-    virtual QJsonValue toJson(const QList<T> &list);
-
-    template <typename T>
-    virtual QJsonValue fromJson(const QJsonArray &list);
+    QJsonValue toJson(const QList<T> &list);
 };
+
+
+template <typename T>
+QJsonValue JsonSerializer::toJson(const QList<T> &list)
+{
+    QJsonArray array;
+    for (const T &item : list) {
+        array.append(toJson(item));
+    }
+    return array;
+}
 
 }
 
