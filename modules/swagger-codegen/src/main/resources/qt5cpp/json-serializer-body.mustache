@@ -27,31 +27,18 @@ QJsonValue JsonSerializer::toJson(const {{classname}} &value)
 
 bool JsonSerializer::fromJson({{classname}} *dst, const QJsonValue &json)
 {
-/*
-    {{#vars}}
-        {{#isPrimitiveType}}
-            obj.insert("{{name}}", value.{{getter}}());{{#required}} // required{{/required}}
-        {{/isPrimitiveType}}
-        {{^isPrimitiveType}}
-            {{#isContainer}}
-                obj.insert("{{name}}", toJson(value.{{getter}}()));{{#required}} // required{{/required}}
-            {{/isContainer}}
-            {{^isContainer}}
-                {{#isString}}
-                    obj.insert("{{name}}", value.{{getter}}());
-                {{/isString}}
-                {{^isString}}
-                    {{#complexType}}
-                        obj.insert("{{name}}", toJson(value.{{getter}}()));{{#required}} // required{{/required}}
-                    {{/complexType}}
-                {{/isString}}
-            {{/isContainer}}
-        {{/isPrimitiveType}}
-    {{/vars}}
-    return obj;
-    */
+    QJsonObject obj = json.toObject();
 
-    return false;
+    {{#vars}}
+    {{#isContainer}}
+    dst->{{setter}}(fromJson<{{{complexType}}}>(obj.value("{{name}}").toArray()));
+    {{/isContainer}}
+    {{^isContainer}}
+    dst->{{setter}}(fromJson<{{datatype}}>(obj.value("{{name}}")));
+    {{/isContainer}}
+    {{/vars}}
+
+    return true;
 }
 {{/model}}{{/models}}
 
@@ -80,6 +67,11 @@ QJsonValue JsonSerializer::toJson(const double &number)
     return number;
 }
 
+QJsonValue JsonSerializer::toJson(const bool &boolean)
+{
+    return boolean;
+}
+
 QJsonValue JsonSerializer::toJson(const QDateTime &dateTime)
 {
     return dateTime.toString();
@@ -93,6 +85,48 @@ QJsonValue JsonSerializer::toJson(const QByteArray &byteArray)
 QJsonValue JsonSerializer::toJson(const QUuid &uuid)
 {
     return uuid.toString();
+}
+
+bool JsonSerializer::fromJson(QString *dst, const QJsonValue &value)
+{
+    *dst = value.toString();
+    return true;
+}
+
+bool JsonSerializer::fromJson(QDateTime *dst, const QJsonValue &value)
+{
+    *dst = QDateTime::fromString(value.toString());
+    return true;
+}
+
+bool JsonSerializer::fromJson(qint32 *dst, const QJsonValue &value)
+{
+    *dst = value.toInt();
+    return true;
+}
+
+bool JsonSerializer::fromJson(qint64 *dst, const QJsonValue &value)
+{
+    *dst = value.toInt();
+    return true;
+}
+
+bool JsonSerializer::fromJson(float *dst, const QJsonValue &value)
+{
+    *dst = value.toDouble();
+    return true;
+}
+
+bool JsonSerializer::fromJson(double *dst, const QJsonValue &value)
+{
+    *dst = value.toDouble();
+    return true;
+}
+
+bool JsonSerializer::fromJson(bool *dst, const QJsonValue &value)
+{
+    *dst = value.toBool();
+    return true;
 }
 
 }

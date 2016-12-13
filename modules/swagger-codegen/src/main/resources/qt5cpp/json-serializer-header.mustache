@@ -27,14 +27,28 @@ public:
     virtual QJsonValue toJson(const qint64 &number);
     virtual QJsonValue toJson(const float &number);
     virtual QJsonValue toJson(const double &number);
+    virtual QJsonValue toJson(const bool &boolean);
     virtual QJsonValue toJson(const QDateTime &dateTime);
     virtual QJsonValue toJson(const QByteArray &byteArray);
     virtual QJsonValue toJson(const QUuid &uuid);
 
+    virtual bool fromJson(QString *dst, const QJsonValue &value);
+    virtual bool fromJson(QDateTime *dst, const QJsonValue &value);
+    virtual bool fromJson(qint32 *dst, const QJsonValue &value);
+    virtual bool fromJson(qint64 *dst, const QJsonValue &value);
+    virtual bool fromJson(float *dst, const QJsonValue &value);
+    virtual bool fromJson(double *dst, const QJsonValue &value);
+    virtual bool fromJson(bool *dst, const QJsonValue &value);
+
     template <typename T>
     QJsonValue toJson(const QList<T> &list);
-};
 
+    template <typename T, typename V>
+    T fromJson(const V &value);
+
+    template <typename T>
+    QList<T> fromJson(const QJsonArray &array);
+};
 
 template <typename T>
 QJsonValue JsonSerializer::toJson(const QList<T> &list)
@@ -46,6 +60,22 @@ QJsonValue JsonSerializer::toJson(const QList<T> &list)
     return array;
 }
 
+template <typename T, typename V>
+T JsonSerializer::fromJson(const V &value) {
+    T tmp;
+    fromJson(&tmp, value);
+    return tmp;
 }
+
+template <typename T>
+QList<T> JsonSerializer::fromJson(const QJsonArray &array) {
+    QList<T> list;
+    for (const QJsonValue &value : array) {
+        list << fromJson<T>(value);
+    }
+    return list;
+}
+
+} // namespace Swagger
 
 #endif // JSON_SERIALIZER_H_
