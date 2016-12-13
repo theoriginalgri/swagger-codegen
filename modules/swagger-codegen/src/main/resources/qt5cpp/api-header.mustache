@@ -2,10 +2,9 @@
 #ifndef _SWG_{{classname}}_H_
 #define _SWG_{{classname}}_H_
 
-#include "{{prefix}}HttpRequest.h"
-
 {{#imports}}{{{import}}}
 {{/imports}}
+#include "Promise.h"
 
 #include <QObject>
 
@@ -17,17 +16,19 @@ class {{classname}} : public QObject
 
 public:
     explicit {{classname}}(QObject *parent = Q_NULLPTR);
-    {{classname}}(const SwaggerConfig &config, QObject *parent = Q_NULLPTR);
+    {{classname}}(SwaggerConfig *config, QObject *parent = Q_NULLPTR);
     ~{{classname}}();
 
-    void setConfig(const SwaggerConfig &config);
-    SwaggerConfig config() const;
+    void setConfig(SwaggerConfig *config);
+    SwaggerConfig *config() const;
 
     {{#operations}}{{#operation}}Promise<{{{returnType}}}> {{nickname}}({{#allParams}}const {{{dataType}}} &{{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}});
     {{/operation}}{{/operations}}
 
 private:
-    SwaggerConfig config;
+    SwaggerConfig *m_config;
 };
-}
+
+} // namespace Swagger
+
 #endif

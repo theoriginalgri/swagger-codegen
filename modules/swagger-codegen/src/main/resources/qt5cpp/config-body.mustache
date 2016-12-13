@@ -1,0 +1,84 @@
+{{>licenseInfo}}
+
+#include "SwaggerConfig.h"
+
+
+namespace Swagger {
+
+SwaggerConfig::SwaggerConfig(QObject *parent)
+: QObject(parent)
+{
+}
+
+SwaggerConfig::SwaggerConfig(const QUrl &url, QObject *parent)
+: QObject(parent)
+, m_url(url)
+{
+}
+
+SwaggerConfig::~SwaggerConfig()
+{
+}
+
+void SwaggerConfig::setUrl(const QUrl &url)
+{
+    m_url = url;
+}
+
+QUrl SwaggerConfig::url() const
+{
+    return m_url;
+}
+
+void SwaggerConfig::setApiKey(const QString& key, const QString &value)
+{
+    m_apiKeys.insert(key, value);
+}
+
+void SwaggerConfig::removeApiKey(const QString &key)
+{
+    m_apiKeys.remove(key);
+}
+
+QString SwaggerConfig::apiKey(const QString &key) const
+{
+    return m_apiKeys.value(key);
+}
+
+void SwaggerConfig::setNetworkAccessManager(QNetworkAccessManager *networkAccessManager)
+{
+    if (m_networkAccessManager == networkAccessManager) {
+        return;
+    }
+
+    if (m_networkAccessManager && m_networkAccessManager->parent() == this) {
+        m_networkAccessManager->deleteLater();
+    }
+
+    m_networkAccessManager = networkAccessManager;
+}
+
+QNetworkAccessManager *SwaggerConfig::networkAccessManager()
+{
+    if (!m_networkAccessManager) {
+    #ifdef QT_QML_LIB
+        QQmlEngine *engine = qmlEngine(this);
+        if (engine) {
+            m_networkAccessManager = engine->networkAccessManager();
+        }
+    #endif // QT_QML_LIB
+
+        if (!m_networkAccessManager) {
+            m_networkAccessManager = new QNetworkAccessManager(this);
+        }
+    }
+
+    return m_networkAccessManager;
+}
+
+void SwaggerConfig::prepareRequest(QNetworkRequest *request)
+{
+    Q_UNUSED(request);
+}
+
+} // namespace Swagger

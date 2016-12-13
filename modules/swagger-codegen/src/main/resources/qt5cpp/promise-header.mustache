@@ -1,0 +1,47 @@
+{{>licenseInfo}}
+
+#ifndef PROMISE_H_
+#define PROMISE_H_
+
+#include <QSharedPointer>
+#include <QList>
+#include <functional>
+
+namespace Swagger {
+
+template <typename T>
+struct PromiseData {
+    QList<std::function<void (const T &)>> thens;
+    QList<std::function<void ()>> errors;
+
+    void executeThens(const T &data) {
+        for(std::function<void (const T &)> fnc : thens) {
+            fnc(data);
+        }
+    }
+};
+
+template <typename T>
+class Promise
+{
+public:
+    Promise() : m_data(new PromiseData<T>) {
+    }
+
+    Promise &then(std::function<void (const T &)> fnc) {
+        m_data->thens << fnc;
+
+        return *this;
+    }
+
+    QSharedPointer<PromiseData<T> > data() const {
+        return m_data;
+    }
+
+private:
+    QSharedPointer<PromiseData<T> > m_data;
+};
+
+} // namespace Swagger
+
+#endif // PROMISE_H_

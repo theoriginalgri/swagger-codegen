@@ -1,21 +1,64 @@
 {{>licenseInfo}}
 #include "{{classname}}.h"
-#include "{{prefix}}Helpers.h"
-#include "{{prefix}}ModelFactory.h"
+#include "JsonSerializer.h"
 
+#include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QNetworkRequest>
+#include <QNetworkReply>
+#include <QUrlQuery>
 
 namespace Swagger {
 
+static QHash<QString, QChar> collectionFormatDelimiters {
+    { "csv", QLatin1Char(',') },
+    { "tsv", QLatin1Char('\t') },
+    { "ssv", QLatin1Char(' ') },
+    { "pipes", QLatin1Char('|') },
+};
+
+template <typename T>
+static QString formatCollectionParameter(const QList<T> &list, const QString &collectionFormat) {
+    const QChar delimiter = collectionFormatDelimiters.value(collectionFormat);
+
+    QString value;
+    QTextStream s(&value);
+
+    QListIterator<T> iter(list);
+    while (iter.hasNext()) {
+        s << iter.next();
+
+        if (iter.hasNext()) {
+            s << delimiter;
+        }
+    }
+
+    return value;
+}
+
+class NetworkHelper {
+public:
+
+
+    QNetworkReply *execute(const QString &method, const QNetworkRequest &request, QNetworkAccessManager *mgr) {
+        if (method == "POST") {
+            //return mgr->post(request, );
+        }
+
+        return nullptr;
+    }
+};
+
 {{classname}}::{{classname}}(QObject *parent)
 : QObject(parent)
+, m_config(nullptr)
 {
 }
 
-{{classname}}::{{classname}}(const SwaggerConfig &config, QObject *parent)
+{{classname}}::{{classname}}(SwaggerConfig *config, QObject *parent)
 : QObject(parent)
-, config(config)
+, m_config(config)
 {
 }
 
@@ -23,106 +66,97 @@ namespace Swagger {
 {
 }
 
+void {{classname}}::setConfig(SwaggerConfig *config)
+{
+    m_config = config;
+}
+
+SwaggerConfig *{{classname}}::config() const
+{
+    return m_config;
+}
+
 {{#operations}}
 {{#operation}}
-Promise<{{{returnType}}}> {{classname}}::{{nickname}}({{#allParams}}{{{dataType}}} {{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}}) {
-    QString fullPath;
-    fullPath.append(config.host()).append(config.basePath()).append("{{path}}");
+Promise<{{{returnType}}}> {{classname}}::{{nickname}}({{#allParams}}const {{{dataType}}} &{{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}}) {
+    QUrl url(m_config->url());
+    QString fullPath = url.path() + "{{path}}";
 
     {{#pathParams}}
-    QString {{paramName}}PathParam("{"); {{paramName}}PathParam.append("{{baseName}}").append("}");
-    fullPath.replace({{paramName}}PathParam, stringValue({{paramName}}));
+    {{=<% %>=}}
+    fullPath.replace("{<%baseName%>}", QVariant::fromValue(<%paramName%>).toString());
+    <%={{ }}=%>
     {{/pathParams}}
 
+    QUrlQuery query(url);
     {{#queryParams}}
     {{^collectionFormat}}
-    if (fullPath.indexOf("?") > 0) 
-      fullPath.append("&");
-    else 
-      fullPath.append("?");
-    fullPath.append(QUrl::toPercentEncoding("{{baseName}}"))
-        .append("=")
-        .append(QUrl::toPercentEncoding(stringValue({{paramName}})));
+    query.addQueryItem("{{paramName}}", QVariant::fromValue({{paramName}}).toString());
     {{/collectionFormat}}
-
     {{#collectionFormat}}
-
-    if ({{{paramName}}}->size() > 0) {
-      if (QString("{{collectionFormat}}").indexOf("multi") == 0) {
-        foreach({{{baseType}}} t, *{{paramName}}) {
-          if (fullPath.indexOf("?") > 0)
-            fullPath.append("&");
-          else 
-            fullPath.append("?");
-          fullPath.append("{{{baseName}}}=").append(stringValue(t));
-        }
-      }
-      else if (QString("{{collectionFormat}}").indexOf("ssv") == 0) {
-        if (fullPath.indexOf("?") > 0)
-          fullPath.append("&");
-        else 
-          fullPath.append("?");
-        fullPath.append("{{baseName}}=");
-        qint32 count = 0;
-        foreach({{{baseType}}} t, *{{paramName}}) {
-          if (count > 0) {
-            fullPath.append(" ");
-          }
-          fullPath.append(stringValue(t));
-        }
-      }
-      else if (QString("{{collectionFormat}}").indexOf("tsv") == 0) {
-        if (fullPath.indexOf("?") > 0)
-          fullPath.append("&");
-        else 
-          fullPath.append("?");
-        fullPath.append("{{baseName}}=");
-        qint32 count = 0;
-        foreach({{{baseType}}} t, *{{paramName}}) {
-          if (count > 0) {
-            fullPath.append("\t");
-          }
-          fullPath.append(stringValue(t));
-        }
-      }
-    }
-
+    query.addQueryItem("{{paramName}}", formatCollectionParameter({{paramName}}, "{{collectionFormat}}"));
     {{/collectionFormat}}
     {{/queryParams}}
 
-    HttpRequestWorker *worker = new HttpRequestWorker();
-    HttpRequestInput input(fullPath, "{{httpMethod}}");
+    // START authentication
+    {{#authMethods}}
+    {{#isKeyInQuery}}
+    query.addQueryItem("{{keyParamName}}", config.apiKey("{{keyParamName}}"));
+    {{/isKeyInQuery}}
+    {{/authMethods}}
+    // END authentication
+
+    url.setQuery(query);
+
+    QNetworkRequest request(url);
+    request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, QVariant::fromValue(true));
 
     {{#formParams}}if ({{paramName}} != nullptr) {
         {{^isFile}}input.add_var("{{baseName}}", *{{paramName}});{{/isFile}}{{#isFile}}input.add_file("{{baseName}}", (*{{paramName}}).local_filename, (*{{paramName}}).request_filename, (*{{paramName}}).mime_type);{{/isFile}}
     }
     {{/formParams}}
 
+    JsonSerializer serializer;
+    QJsonDocument doc;
     {{#bodyParams}}
     {{#isContainer}}
-    QJsonArray* {{paramName}}Array = new QJsonArray();
-    toJsonArray((QList<void*>*){{paramName}}, {{paramName}}Array, QString("body"), QString("SWGUser*"));
-
-    QJsonDocument doc(*{{paramName}}Array);
-    QByteArray bytes = doc.toJson();
-
-    input.request_body.append(bytes);
+    doc.setArray(serializer.toJson({{paramName}}).toArray());
     {{/isContainer}}
     {{^isContainer}}
-    QString output = {{paramName}}.asJson();
-    input.request_body.append(output);
+    doc.setObject(serializer.toJson({{paramName}}).toObject());
     {{/isContainer}}{{/bodyParams}}
 
     {{#headerParams}}
-    // TODO: add header support
+    {{#isContainer}}
+    // TODO: Add container variable support for header params
+    {{/isContainer}}
+    {{^isContainer}}
+    request.setRawHeader("{{paramName}}", QVariant::fromValue({{paramName}}).toByteArray());
+    {{/isContainer}}
     {{/headerParams}}
 
-    connect(worker,
-            &HttpRequestWorker::on_execution_finished,
-            this,
-            &{{classname}}::{{nickname}}Callback);
+    // START authentication
+    {{#authMethods}}
+    {{#isKeyInHeader}}
+    request.setRawHeader("{{keyParamName}}", m_config->apiKey("{{keyParamName}}"));
+    {{/isKeyInHeader}}
+    {{/authMethods}}
+    // END authentication
 
-    worker->execute(&input);
+    m_config->prepareRequest(&request);
+
+    NetworkHelper helper;
+    QNetworkReply *reply = helper.execute("{{httpMethod}}", request, nullptr);
+
+    connect(reply, &QNetworkReply::finished, [=](){
+        // TODO: Implementation
+
+        {{#responses}}
+        // response for {{code}} = {{message}}
+        {{/responses}}
+
+        reply->deleteLater();
+    });
 }
 
 {{/operation}}

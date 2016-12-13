@@ -109,12 +109,13 @@ public class Qt5CPPGenerator extends DefaultCodegen implements CodegenConfig {
         supportingFiles.add(new SupportingFile("json-serializer-body.mustache", sourceFolder, "JsonSerializer.cpp"));
         supportingFiles.add(new SupportingFile("config-header.mustache", sourceFolder, "SwaggerConfig.h"));
         supportingFiles.add(new SupportingFile("config-body.mustache", sourceFolder, "SwaggerConfig.cpp"));
-        supportingFiles.add(new SupportingFile("helpers-header.mustache", sourceFolder, PREFIX + "Helpers.h"));
-        supportingFiles.add(new SupportingFile("helpers-body.mustache", sourceFolder, PREFIX + "Helpers.cpp"));
-        supportingFiles.add(new SupportingFile("HttpRequest.h.mustache", sourceFolder, PREFIX + "HttpRequest.h"));
-        supportingFiles.add(new SupportingFile("HttpRequest.cpp.mustache", sourceFolder, PREFIX + "HttpRequest.cpp"));
-        supportingFiles.add(new SupportingFile("modelFactory.mustache", sourceFolder, PREFIX + "ModelFactory.h"));
-        supportingFiles.add(new SupportingFile("object.mustache", sourceFolder, PREFIX + "Object.h"));
+        supportingFiles.add(new SupportingFile("promise-header.mustache", sourceFolder, "Promise.h"));
+//        supportingFiles.add(new SupportingFile("helpers-header.mustache", sourceFolder, PREFIX + "Helpers.h"));
+//        supportingFiles.add(new SupportingFile("helpers-body.mustache", sourceFolder, PREFIX + "Helpers.cpp"));
+//        supportingFiles.add(new SupportingFile("HttpRequest.h.mustache", sourceFolder, PREFIX + "HttpRequest.h"));
+//        supportingFiles.add(new SupportingFile("HttpRequest.cpp.mustache", sourceFolder, PREFIX + "HttpRequest.cpp"));
+//        supportingFiles.add(new SupportingFile("modelFactory.mustache", sourceFolder, PREFIX + "ModelFactory.h"));
+//        supportingFiles.add(new SupportingFile("object.mustache", sourceFolder, PREFIX + "Object.h"));
 
         super.typeMapping = new HashMap<String, String>();
 
@@ -126,7 +127,7 @@ public class Qt5CPPGenerator extends DefaultCodegen implements CodegenConfig {
         typeMapping.put("boolean", "bool");
         typeMapping.put("array", "QList");
         typeMapping.put("map", "QMap");
-        typeMapping.put("file", "SWGHttpRequestInputFileElement");
+        typeMapping.put("file", "QIODevice");
         typeMapping.put("object", PREFIX + "Object");
         // mapped to String as a workaround
         typeMapping.put("binary", "QByteArray");
@@ -135,7 +136,7 @@ public class Qt5CPPGenerator extends DefaultCodegen implements CodegenConfig {
 
         importMapping = new HashMap<String, String>();
 
-        importMapping.put("SWGHttpRequestInputFileElement", "#include \"" + PREFIX + "HttpRequest.h\"");
+//        importMapping.put("SWGHttpRequestInputFileElement", "#include \"" + PREFIX + "HttpRequest.h\"");
 
         namespaces = new HashMap<String, String>();
 
@@ -148,6 +149,7 @@ public class Qt5CPPGenerator extends DefaultCodegen implements CodegenConfig {
         systemIncludes.add("QDateTime");
         systemIncludes.add("QByteArray");
         systemIncludes.add("QUuid");
+        systemIncludes.add("QIODevice");
     }
 
     /**
