@@ -10,6 +10,25 @@
 
 namespace Swagger {
 
+{{#operations}}
+{{#operation}}
+struct {{nickname}}Reply
+{
+    QNetworkReply *httpResponse;
+
+{{#responses}}
+    {{#dataType}}
+    {{{dataType}}} http_{{code}}; // {{{message}}}
+    {{/dataType}}
+    {{^dataType}}
+    bool http_{{code}} = false; // {{{message}}}
+    {{/dataType}}
+{{/responses}}
+};
+
+{{/operation}}
+{{/operations}}
+
 class {{classname}} : public QObject
 {
     Q_OBJECT
@@ -22,7 +41,7 @@ public:
     void setConfig(SwaggerConfig *config);
     SwaggerConfig *config() const;
 
-    {{#operations}}{{#operation}}Promise<{{{returnType}}}> {{nickname}}({{#allParams}}const {{{dataType}}} &{{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}});
+    {{#operations}}{{#operation}}Promise<{{nickname}}Reply> {{nickname}}({{#allParams}}const {{{dataType}}} &{{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}});
     {{/operation}}{{/operations}}
 
 private:

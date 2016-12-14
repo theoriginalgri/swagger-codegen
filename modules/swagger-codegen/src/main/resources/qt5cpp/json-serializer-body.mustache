@@ -16,7 +16,7 @@ JsonSerializer::~JsonSerializer()
 }
 
 {{#models}}{{#model}}
-QJsonValue JsonSerializer::toJson(const {{classname}} &value)
+QJsonObject JsonSerializer::toJson(const {{classname}} &value)
 {
     QJsonObject obj;
     {{#vars}}

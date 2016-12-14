@@ -8,6 +8,7 @@
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QUrlQuery>
+#include <QHttpPart>
 
 namespace Swagger {
 
@@ -40,14 +41,27 @@ static QString formatCollectionParameter(const QList<T> &list, const QString &co
 class NetworkHelper {
 public:
 
+    void addVar(const QString &name, const QString &value) {
+        m_vars.insert(name, value);
+    }
+
+    void addFile(const QString &name, const QHttpPart &part) {
+        m_files.insert(name, part);
+    }
 
     QNetworkReply *execute(const QString &method, const QNetworkRequest &request, QNetworkAccessManager *mgr) {
         if (method == "POST") {
-            //return mgr->post(request, );
+            //return mgr->post(request);
+        } else if (method == "GET") {
+            return mgr->get(request);
         }
 
         return nullptr;
     }
+
+private:
+    QMap<QString, QString> m_vars;
+    QMap<QString, QHttpPart> m_files;
 };
 
 {{classname}}::{{classname}}(QObject *parent)
@@ -78,7 +92,7 @@ SwaggerConfig *{{classname}}::config() const
 
 {{#operations}}
 {{#operation}}
-Promise<{{{returnType}}}> {{classname}}::{{nickname}}({{#allParams}}const {{{dataType}}} &{{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}}) {
+Promise<{{nickname}}Reply> {{classname}}::{{nickname}}({{#allParams}}const {{{dataType}}} &{{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}}) {
     QUrl url(m_config->url());
     QString fullPath = url.path() + "{{path}}";
 
@@ -111,19 +125,24 @@ Promise<{{{returnType}}}> {{classname}}::{{nickname}}({{#allParams}}const {{{dat
     QNetworkRequest request(url);
     request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, QVariant::fromValue(true));
 
-    {{#formParams}}if ({{paramName}} != nullptr) {
-        {{^isFile}}input.add_var("{{baseName}}", *{{paramName}});{{/isFile}}{{#isFile}}input.add_file("{{baseName}}", (*{{paramName}}).local_filename, (*{{paramName}}).request_filename, (*{{paramName}}).mime_type);{{/isFile}}
-    }
+    NetworkHelper helper;
+    {{#formParams}}
+    {{^isFile}}
+    helper.addVar("{{baseName}}", QVariant::fromValue({{paramName}}).toString());
+    {{/isFile}}
+    {{#isFile}}
+    helper.addFile("{{baseName}}", {{paramName}});
+    {{/isFile}}
     {{/formParams}}
 
     JsonSerializer serializer;
     QJsonDocument doc;
     {{#bodyParams}}
     {{#isContainer}}
-    doc.setArray(serializer.toJson({{paramName}}).toArray());
+    doc.setArray(serializer.toJson({{paramName}}));
     {{/isContainer}}
     {{^isContainer}}
-    doc.setObject(serializer.toJson({{paramName}}).toObject());
+    doc.setObject(serializer.toJson({{paramName}}));
     {{/isContainer}}{{/bodyParams}}
 
     {{#headerParams}}
@@ -145,18 +164,42 @@ Promise<{{{returnType}}}> {{classname}}::{{nickname}}({{#allParams}}const {{{dat
 
     m_config->prepareRequest(&request);
 
-    NetworkHelper helper;
-    QNetworkReply *reply = helper.execute("{{httpMethod}}", request, nullptr);
+    QNetworkReply *reply = helper.execute("{{httpMethod}}", request, m_config->networkAccessManager());
+
+    Promise<{{nickname}}Reply> promise;
 
     connect(reply, &QNetworkReply::finished, [=](){
-        // TODO: Implementation
+        JsonSerializer serializer;
+        {{nickname}}Reply response;
+        response.httpResponse = reply;
 
+        // TODO: Error handling
+
+        QJsonParseError error;
+        QJsonDocument doc = QJsonDocument::fromJson(reply->readAll(), &error);
+
+        int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        switch(statusCode) {
         {{#responses}}
-        // response for {{code}} = {{message}}
+        {{#isDefault}}
+        default: // {{{message}}}
+        {{/isDefault}}
+        {{^isDefault}}
+        case {{code}}: // {{{message}}}
+        {{/isDefault}}
+            {
+                serializer.fromJson(&response.http_{{code}}, doc.{{#isListContainer}}array{{/isListContainer}}{{^isListContainer}}object{{/isListContainer}}());
+            }
+            break;
         {{/responses}}
+        }
+
+        promise.data()->executeThens(response);
 
         reply->deleteLater();
     });
+
+    return promise;
 }
 
 {{/operation}}

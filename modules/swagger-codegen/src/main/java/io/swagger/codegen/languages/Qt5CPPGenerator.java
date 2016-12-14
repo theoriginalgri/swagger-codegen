@@ -1,6 +1,7 @@
 package io.swagger.codegen.languages;
 
 import io.swagger.codegen.*;
+import io.swagger.models.Response;
 import io.swagger.models.properties.ArrayProperty;
 import io.swagger.models.properties.BooleanProperty;
 import io.swagger.models.properties.DateProperty;
@@ -127,8 +128,8 @@ public class Qt5CPPGenerator extends DefaultCodegen implements CodegenConfig {
         typeMapping.put("boolean", "bool");
         typeMapping.put("array", "QList");
         typeMapping.put("map", "QMap");
-        typeMapping.put("file", "QIODevice");
-        typeMapping.put("object", PREFIX + "Object");
+        typeMapping.put("file", "QHttpPart");
+        typeMapping.put("object", "QVariantMap");
         // mapped to String as a workaround
         typeMapping.put("binary", "QByteArray");
         typeMapping.put("ByteArray", "QByteArray");
@@ -150,6 +151,7 @@ public class Qt5CPPGenerator extends DefaultCodegen implements CodegenConfig {
         systemIncludes.add("QByteArray");
         systemIncludes.add("QUuid");
         systemIncludes.add("QIODevice");
+        systemIncludes.add("QHttpPart");
     }
 
     /**
@@ -183,6 +185,18 @@ public class Qt5CPPGenerator extends DefaultCodegen implements CodegenConfig {
     @Override
     public String getHelp() {
         return "Generates a qt5 C++ client library.";
+    }
+
+    @Override
+    public CodegenResponse fromResponse(String responseCode, Response response) {
+        CodegenResponse r = super.fromResponse(responseCode, response);
+
+        // Why was this forgotten in the super class?
+        if ("array".equals(r.containerType)) {
+            r.isListContainer = true;
+        }
+
+        return r;
     }
 
     @Override

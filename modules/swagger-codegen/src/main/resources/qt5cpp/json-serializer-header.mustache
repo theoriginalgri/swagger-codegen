@@ -18,7 +18,7 @@ public:
     JsonSerializer();
     virtual ~JsonSerializer();
 {{#models}}{{#model}}
-    virtual QJsonValue toJson(const {{classname}} &value);
+    virtual QJsonObject toJson(const {{classname}} &value);
     virtual bool fromJson({{classname}} *dst, const QJsonValue &json);
 {{/model}}{{/models}}
     // Builtin types
@@ -41,7 +41,10 @@ public:
     virtual bool fromJson(bool *dst, const QJsonValue &value);
 
     template <typename T>
-    QJsonValue toJson(const QList<T> &list);
+    bool fromJson(QList<T> *list, const QJsonArray &array);
+
+    template <typename T>
+    QJsonArray toJson(const QList<T> &list);
 
     template <typename T, typename V>
     T fromJson(const V &value);
@@ -51,7 +54,16 @@ public:
 };
 
 template <typename T>
-QJsonValue JsonSerializer::toJson(const QList<T> &list)
+bool JsonSerializer::fromJson(QList<T> *list, const QJsonArray &array)
+{
+    for(const QJsonValue &value : array) {
+        *list << fromJson<T>(value);
+    }
+    return true;
+}
+
+template <typename T>
+QJsonArray JsonSerializer::toJson(const QList<T> &list)
 {
     QJsonArray array;
     for (const T &item : list) {

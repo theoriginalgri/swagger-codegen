@@ -2,6 +2,7 @@
 
 #include "SwaggerConfig.h"
 
+#include <QNetworkRequest>
 
 namespace Swagger {
 
@@ -30,7 +31,7 @@ QUrl SwaggerConfig::url() const
     return m_url;
 }
 
-void SwaggerConfig::setApiKey(const QString& key, const QString &value)
+void SwaggerConfig::setApiKey(const QString& key, const QByteArray &value)
 {
     m_apiKeys.insert(key, value);
 }
@@ -40,7 +41,7 @@ void SwaggerConfig::removeApiKey(const QString &key)
     m_apiKeys.remove(key);
 }
 
-QString SwaggerConfig::apiKey(const QString &key) const
+QByteArray SwaggerConfig::apiKey(const QString &key) const
 {
     return m_apiKeys.value(key);
 }
@@ -78,7 +79,7 @@ QNetworkAccessManager *SwaggerConfig::networkAccessManager()
 
 void SwaggerConfig::prepareRequest(QNetworkRequest *request)
 {
-    Q_UNUSED(request);
+    request->setRawHeader("User-Agent", "Swagger-Client");
 }
 
 } // namespace Swagger

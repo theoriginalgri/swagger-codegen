@@ -21,9 +21,9 @@ public:
     void setUrl(const QUrl &url);
     QUrl url() const;
 
-    void setApiKey(const QString& key, const QString &value);
+    void setApiKey(const QString& key, const QByteArray &value);
     void removeApiKey(const QString &key);
-    QString apiKey(const QString &key) const;
+    QByteArray apiKey(const QString &key) const;
 
     void setNetworkAccessManager(QNetworkAccessManager *networkAccessManager);
     QNetworkAccessManager *networkAccessManager();
@@ -33,7 +33,7 @@ public:
 
 private:
     QUrl m_url;
-    QMap<QString, QString> m_apiKeys;
+    QMap<QString, QByteArray> m_apiKeys;
 
     QNetworkAccessManager *m_networkAccessManager;
 };
