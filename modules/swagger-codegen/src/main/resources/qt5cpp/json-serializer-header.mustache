@@ -9,6 +9,7 @@
 #include <QUuid>
 #include <QJsonValue>
 #include <QJsonArray>
+#include <QJsonObject>
 
 namespace Swagger {
 
@@ -44,6 +45,9 @@ public:
     bool fromJson(QList<T> *list, const QJsonArray &array);
 
     template <typename T>
+    bool fromJson(QMap<QString, T> *map, const QJsonObject &object);
+
+    template <typename T>
     QJsonArray toJson(const QList<T> &list);
 
     template <typename T, typename V>
@@ -52,6 +56,15 @@ public:
     template <typename T>
     QList<T> fromJson(const QJsonArray &array);
 };
+
+template <typename T>
+bool JsonSerializer::fromJson(QMap<QString, T> *map, const QJsonObject &object)
+{
+    for(auto iter=object.constBegin(); iter != object.constEnd(); ++iter) {
+        map->insert(iter.key(), fromJson<T>(iter.value()));
+    }
+    return true;
+}
 
 template <typename T>
 bool JsonSerializer::fromJson(QList<T> *list, const QJsonArray &array)

@@ -82,4 +82,9 @@ void SwaggerConfig::prepareRequest(QNetworkRequest *request)
     request->setRawHeader("User-Agent", "Swagger-Client");
 }
 
+void SwaggerConfig::processReply(QNetworkReply *reply)
+{
+    Q_UNUSED(reply);
+}
+
 } // namespace Swagger

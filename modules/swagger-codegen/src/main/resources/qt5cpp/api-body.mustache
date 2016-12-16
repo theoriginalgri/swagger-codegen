@@ -166,9 +166,11 @@ Promise<{{nickname}}Reply> {{classname}}::{{nickname}}({{#allParams}}const {{{da
 
     QNetworkReply *reply = helper.execute("{{httpMethod}}", request, m_config->networkAccessManager());
 
+    m_config->processReply(reply);
+
     Promise<{{nickname}}Reply> promise;
 
-    connect(reply, &QNetworkReply::finished, [=](){
+    connect(reply, &QNetworkReply::finished, [=, &promise](){
         JsonSerializer serializer;
         {{nickname}}Reply response;
         response.httpResponse = reply;
@@ -188,13 +190,18 @@ Promise<{{nickname}}Reply> {{classname}}::{{nickname}}({{#allParams}}const {{{da
         case {{code}}: // {{{message}}}
         {{/isDefault}}
             {
+                {{#dataType}}
                 serializer.fromJson(&response.http_{{code}}, doc.{{#isListContainer}}array{{/isListContainer}}{{^isListContainer}}object{{/isListContainer}}());
+                {{/dataType}}
+                {{^dataType}}
+                response.http_{{code}} = true;
+                {{/dataType}}
             }
             break;
         {{/responses}}
         }
 
-        promise.data()->executeThens(response);
+        promise.resolve(response);
 
         reply->deleteLater();
     });

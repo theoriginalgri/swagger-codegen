@@ -31,6 +31,8 @@ public:
     // Use this method to add additional headers etc. to your requests
     virtual void prepareRequest(QNetworkRequest *request);
 
+    virtual void processReply(QNetworkReply *reply);
+
 private:
     QUrl m_url;
     QMap<QString, QByteArray> m_apiKeys;

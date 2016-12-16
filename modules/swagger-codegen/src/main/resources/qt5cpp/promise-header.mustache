@@ -9,44 +9,54 @@
 
 namespace Swagger {
 
-template <typename T>
+template <typename... T>
 struct PromiseData {
-    QList<std::function<void (const T &)>> thens;
-    QList<std::function<void ()>> errors;
+    QList<std::function<void (T...)> > thens;
+    QList<std::function<void ()> > errors;
 
-    void executeThens(const T &data) {
-        for(std::function<void (const T &)> fnc : thens) {
-            fnc(data);
+    void resolve(T... args) {
+        for(auto fnc : thens) {
+            fnc(args...);
+        }
+    }
+
+    void reject() {
+        for(auto fnc : errors) {
+            fnc();
         }
     }
 };
 
-template <typename T>
+template <typename... T>
 class Promise
 {
 public:
-    Promise() : m_data(new PromiseData<T>) {
+    Promise() : m_data(new PromiseData<T...>) {
     }
 
-    Promise &then(std::function<void (const T &)> fnc) {
+    Promise &then(std::function<void (T...)> fnc) {
         m_data->thens << fnc;
 
         return *this;
     }
 
-    Promise &then(std::function<void (const T &)> fnc, std::function<void ()> errorHandler) {
+    Promise &then(std::function<void (T...)> fnc, std::function<void ()> errorHandler) {
         m_data->thens << fnc;
         m_data->errors << errorHandler;
 
         return *this;
     }
 
-    QSharedPointer<PromiseData<T> > data() const {
-        return m_data;
+    void resolve(T... value) {
+        m_data->resolve(value...);
+    }
+
+    void reject() {
+        m_data->reject();
     }
 
 private:
-    QSharedPointer<PromiseData<T> > m_data;
+    QSharedPointer<PromiseData<T...> > m_data;
 };
 
 } // namespace Swagger
