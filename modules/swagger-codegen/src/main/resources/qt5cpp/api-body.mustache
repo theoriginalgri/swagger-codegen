@@ -51,9 +51,33 @@ public:
 
     QNetworkReply *execute(const QString &method, const QNetworkRequest &request, QNetworkAccessManager *mgr) {
         if (method == "POST") {
-            //return mgr->post(request);
+            if (m_files.isEmpty()) {
+                QByteArray params;
+                // TODO: Percent encoding of parameters
+                return mgr->post(request, params);
+            } else {
+                QHttpMultiPart *multiPart = new QHttpMultiPart(QHttpMultiPart::FormDataType);
+
+                QMapIterator<QString, QString> iter(m_vars);
+                while (iter.hasNext()) {
+                    QHttpPart part;
+                    part.setHeader(QnetworkRequest::ContentDispositionHeader, "form-data; name"
+                }
+
+                for(const QHttpPart &filePart : m_files) {
+                    multiPart->append(filePart);
+                }
+
+                return mgr->post(request, multiPart);
+            }
         } else if (method == "GET") {
             return mgr->get(request);
+        } else if (method == "PUT") {
+            return mgr->put(request);
+        } else if (method == "HEAD") {
+            return mgr->head(request);
+        } else if (method == "DELETE") {
+            return mgr->deleteResource(request);
         }
 
         return nullptr;
