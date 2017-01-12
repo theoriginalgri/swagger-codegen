@@ -37,7 +37,7 @@ private:
     QUrl m_url;
     QMap<QString, QByteArray> m_apiKeys;
 
-    QNetworkAccessManager *m_networkAccessManager;
+    QNetworkAccessManager *m_networkAccessManager = nullptr;
 };
 
 } // namespace Swagger

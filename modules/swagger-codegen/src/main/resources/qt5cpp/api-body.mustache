@@ -61,7 +61,7 @@ public:
                 QMapIterator<QString, QString> iter(m_vars);
                 while (iter.hasNext()) {
                     QHttpPart part;
-                    part.setHeader(QnetworkRequest::ContentDispositionHeader, "form-data; name"
+                    part.setHeader(QNetworkRequest::ContentDispositionHeader, QString("form-data; name=%1").arg(iter.key()));
                 }
 
                 for(const QHttpPart &filePart : m_files) {
@@ -73,7 +73,7 @@ public:
         } else if (method == "GET") {
             return mgr->get(request);
         } else if (method == "PUT") {
-            return mgr->put(request);
+            return mgr->put(request, QByteArray());
         } else if (method == "HEAD") {
             return mgr->head(request);
         } else if (method == "DELETE") {
@@ -192,17 +192,32 @@ Promise<{{nickname}}Reply> {{classname}}::{{nickname}}({{#allParams}}const {{{da
 
     m_config->processReply(reply);
 
-    Promise<{{nickname}}Reply> promise;
+    Promise<{{nickname}}Reply> *promise = new Promise<{{nickname}}Reply>;
 
-    connect(reply, &QNetworkReply::finished, [=, &promise](){
+    connect(reply, &QNetworkReply::finished, [=](){
         JsonSerializer serializer;
         {{nickname}}Reply response;
         response.httpResponse = reply;
 
         // TODO: Error handling
+        if (reply->error() != QNetworkReply::NoError) {
+            promise->reject();
+
+            reply->deleteLater();
+            delete promise;
+            return;
+        }
 
         QJsonParseError error;
         QJsonDocument doc = QJsonDocument::fromJson(reply->readAll(), &error);
+
+        if (error.error != QJsonParseError::NoError) {
+            promise->reject();
+
+            reply->deleteLater();
+            delete promise;
+            return;
+        }
 
         int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
         switch(statusCode) {
@@ -225,12 +240,13 @@ Promise<{{nickname}}Reply> {{classname}}::{{nickname}}({{#allParams}}const {{{da
         {{/responses}}
         }
 
-        promise.resolve(response);
+        promise->resolve(response);
 
         reply->deleteLater();
+        delete promise;
     });
 
-    return promise;
+    return *promise;
 }
 
 {{/operation}}

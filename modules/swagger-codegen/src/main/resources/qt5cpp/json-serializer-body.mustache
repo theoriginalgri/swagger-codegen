@@ -87,6 +87,29 @@ QJsonValue JsonSerializer::toJson(const QUuid &uuid)
     return uuid.toString();
 }
 
+QJsonValue JsonSerializer::toJson(const QVariant &variant)
+{
+    return QJsonValue::fromVariant(variant);
+}
+
+bool JsonSerializer::fromJson(QVariant *dst, const QJsonValue &value)
+{
+    *dst = value.toVariant();
+    return true;
+}
+
+bool JsonSerializer::fromJson(QUuid *dst, const QJsonValue &value)
+{
+    *dst = QUuid(value.toString());
+    return true;
+}
+
+bool JsonSerializer::fromJson(QByteArray *dst, const QJsonValue &value)
+{
+    *dst = value.toString().toUtf8();
+    return true;
+}
+
 bool JsonSerializer::fromJson(QString *dst, const QJsonValue &value)
 {
     *dst = value.toString();

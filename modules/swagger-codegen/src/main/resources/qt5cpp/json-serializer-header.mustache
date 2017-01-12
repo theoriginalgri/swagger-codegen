@@ -32,7 +32,11 @@ public:
     virtual QJsonValue toJson(const QDateTime &dateTime);
     virtual QJsonValue toJson(const QByteArray &byteArray);
     virtual QJsonValue toJson(const QUuid &uuid);
+    virtual QJsonValue toJson(const QVariant &variant);
 
+    virtual bool fromJson(QVariant *dst, const QJsonValue &value);
+    virtual bool fromJson(QUuid *dst, const QJsonValue &value);
+    virtual bool fromJson(QByteArray *dst, const QJsonValue &value);
     virtual bool fromJson(QString *dst, const QJsonValue &value);
     virtual bool fromJson(QDateTime *dst, const QJsonValue &value);
     virtual bool fromJson(qint32 *dst, const QJsonValue &value);
@@ -46,6 +50,14 @@ public:
 
     template <typename T>
     bool fromJson(QMap<QString, T> *map, const QJsonObject &object);
+
+    template <typename T>
+    bool fromJson(QMap<QString, T> *map, const QJsonValue &value) {
+        return fromJson(map, value.toObject());
+    }
+
+    template <typename T>
+    QJsonObject toJson(const QMap<QString, T> &map);
 
     template <typename T>
     QJsonArray toJson(const QList<T> &list);
@@ -73,6 +85,19 @@ bool JsonSerializer::fromJson(QList<T> *list, const QJsonArray &array)
         *list << fromJson<T>(value);
     }
     return true;
+}
+
+template <typename T>
+QJsonObject JsonSerializer::toJson(const QMap<QString, T> &map) {
+    QJsonObject object;
+    QMapIterator<QString, T> iter(map);
+    while (iter.hasNext()) {
+        iter.next();
+
+        object.insert(iter.key(), toJson(iter.value()));
+    }
+
+    return object;
 }
 
 template <typename T>

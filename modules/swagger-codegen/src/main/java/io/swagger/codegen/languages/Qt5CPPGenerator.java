@@ -152,6 +152,8 @@ public class Qt5CPPGenerator extends DefaultCodegen implements CodegenConfig {
         systemIncludes.add("QUuid");
         systemIncludes.add("QIODevice");
         systemIncludes.add("QHttpPart");
+        systemIncludes.add("QVariantMap");
+        systemIncludes.add("QVariantList");
     }
 
     /**
