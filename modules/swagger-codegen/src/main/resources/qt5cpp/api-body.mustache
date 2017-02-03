@@ -49,10 +49,14 @@ public:
         m_files.insert(name, part);
     }
 
+    void setData(const QByteArray &data) {
+        m_data = data;
+    }
+
     QNetworkReply *execute(const QString &method, const QNetworkRequest &request, QNetworkAccessManager *mgr) {
         if (method == "POST") {
             if (m_files.isEmpty()) {
-                QByteArray params;
+                QByteArray params = m_data;
                 // TODO: Percent encoding of parameters
                 return mgr->post(request, params);
             } else {
@@ -86,6 +90,7 @@ public:
 private:
     QMap<QString, QString> m_vars;
     QMap<QString, QHttpPart> m_files;
+    QByteArray m_data;
 };
 
 {{classname}}::{{classname}}(QObject *parent)
@@ -125,6 +130,7 @@ Promise<{{nickname}}Reply> {{classname}}::{{nickname}}({{#allParams}}const {{{da
     fullPath.replace("{<%baseName%>}", QVariant::fromValue(<%paramName%>).toString());
     <%={{ }}=%>
     {{/pathParams}}
+    url.setPath(fullPath);
 
     QUrlQuery query(url);
     {{#queryParams}}
@@ -168,6 +174,9 @@ Promise<{{nickname}}Reply> {{classname}}::{{nickname}}({{#allParams}}const {{{da
     {{^isContainer}}
     doc.setObject(serializer.toJson({{paramName}}));
     {{/isContainer}}{{/bodyParams}}
+
+    // Set post content
+    helper.setData(doc.toJson());
 
     {{#headerParams}}
     {{#isContainer}}
