@@ -20,6 +20,7 @@ namespace Swagger {
 class {{classname}}Data;
 
 class {{classname}} {
+    Q_GADGET
 public:
     {{classname}}();
     {{classname}}(const {{classname}} &other);
@@ -39,6 +40,7 @@ private:
 } /* namespace Swagger */
 
 Q_DECLARE_TYPEINFO(Swagger::{{classname}}, Q_MOVABLE_TYPE);
+Q_DECLARE_METATYPE(Swagger::{{classname}})
 
 #endif /* {{classname}}_H_ */
 {{/model}}
