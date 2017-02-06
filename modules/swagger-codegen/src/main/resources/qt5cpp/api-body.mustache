@@ -150,6 +150,7 @@ Promise<{{nickname}}Reply> {{classname}}::{{nickname}}({{#allParams}}const {{{da
         }
 
         int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        response.statusCode = statusCode;
         switch(statusCode) {
         {{#responses}}
         {{#isDefault}}
@@ -160,7 +161,8 @@ Promise<{{nickname}}Reply> {{classname}}::{{nickname}}({{#allParams}}const {{{da
         {{/isDefault}}
             {
                 {{#dataType}}
-                serializer.fromJson(&response.http_{{code}}, doc.{{#isListContainer}}array{{/isListContainer}}{{^isListContainer}}object{{/isListContainer}}());
+                response.http_{{code}} = std::make_shared<{{{dataType}}}>();
+                serializer.fromJson(response.http_{{code}}.get(), doc.{{#isListContainer}}array{{/isListContainer}}{{^isListContainer}}object{{/isListContainer}}());
                 {{/dataType}}
                 {{^dataType}}
                 response.http_{{code}} = true;

@@ -14,11 +14,12 @@ namespace Swagger {
 {{#operation}}
 struct {{nickname}}Reply
 {
-    QNetworkReply *httpResponse;
+    QNetworkReply *httpResponse = nullptr;
+    int statusCode = 0;
 
 {{#responses}}
     {{#dataType}}
-    {{{dataType}}} http_{{code}}; // {{{message}}}
+    std::shared_ptr<{{{dataType}}}> http_{{code}}; // {{{message}}}
     {{/dataType}}
     {{^dataType}}
     bool http_{{code}} = false; // {{{message}}}
