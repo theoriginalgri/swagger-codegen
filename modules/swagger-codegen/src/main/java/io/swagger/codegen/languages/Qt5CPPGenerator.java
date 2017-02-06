@@ -111,6 +111,9 @@ public class Qt5CPPGenerator extends DefaultCodegen implements CodegenConfig {
         supportingFiles.add(new SupportingFile("config-header.mustache", sourceFolder, "SwaggerConfig.h"));
         supportingFiles.add(new SupportingFile("config-body.mustache", sourceFolder, "SwaggerConfig.cpp"));
         supportingFiles.add(new SupportingFile("promise-header.mustache", sourceFolder, "Promise.h"));
+        supportingFiles.add(new SupportingFile("network-helper-header.mustache", sourceFolder, "NetworkHelper.h"));
+        supportingFiles.add(new SupportingFile("network-helper-body.mustache", sourceFolder, "NetworkHelper.cpp"));
+
 //        supportingFiles.add(new SupportingFile("helpers-header.mustache", sourceFolder, PREFIX + "Helpers.h"));
 //        supportingFiles.add(new SupportingFile("helpers-body.mustache", sourceFolder, PREFIX + "Helpers.cpp"));
 //        supportingFiles.add(new SupportingFile("HttpRequest.h.mustache", sourceFolder, PREFIX + "HttpRequest.h"));
