@@ -10,6 +10,7 @@
 #include <QNetworkReply>
 #include <QUrlQuery>
 #include <QHttpPart>
+#include <QDebug>
 
 namespace Swagger {
 
@@ -133,20 +134,29 @@ Promise<{{nickname}}Reply> {{classname}}::{{nickname}}({{#allParams}}const {{{da
         if (reply->error() != QNetworkReply::NoError) {
             promise->reject();
 
+            qDebug() << "HTTP error:" << reply->errorString();
+
             reply->deleteLater();
             delete promise;
             return;
         }
 
-        QJsonParseError error;
-        QJsonDocument doc = QJsonDocument::fromJson(reply->readAll(), &error);
+        QByteArray data = reply->readAll();
 
-        if (error.error != QJsonParseError::NoError) {
-            promise->reject();
+        QJsonDocument doc;
+        if (!data.isEmpty()) {
+            QJsonParseError error;
+            doc = QJsonDocument::fromJson(data, &error);
 
-            reply->deleteLater();
-            delete promise;
-            return;
+            if (error.error != QJsonParseError::NoError) {
+                promise->reject();
+
+                qDebug() << "JSON parse error:" << error.errorString();
+
+                reply->deleteLater();
+                delete promise;
+                return;
+            }
         }
 
         int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
