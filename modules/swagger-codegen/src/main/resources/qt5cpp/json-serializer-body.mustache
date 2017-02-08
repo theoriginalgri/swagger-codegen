@@ -74,7 +74,7 @@ QJsonValue JsonSerializer::toJson(const bool &boolean)
 
 QJsonValue JsonSerializer::toJson(const QDateTime &dateTime)
 {
-    return dateTime.toString();
+    return dateTime.toTimeSpec(Qt::OffsetFromUTC).toString(Qt::ISODateWithMs);
 }
 
 QJsonValue JsonSerializer::toJson(const QByteArray &byteArray)
