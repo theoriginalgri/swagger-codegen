@@ -134,7 +134,7 @@ Promise<{{nickname}}Reply> {{classname}}::{{nickname}}({{#allParams}}const {{{da
         if (reply->error() != QNetworkReply::NoError) {
             promise->reject();
 
-            qDebug() << "HTTP error:" << reply->errorString();
+            qDebug() << "HTTP error:" << reply->errorString() << reply->readAll();
 
             reply->deleteLater();
             delete promise;
