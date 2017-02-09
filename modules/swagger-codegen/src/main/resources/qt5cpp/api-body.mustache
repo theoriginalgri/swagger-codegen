@@ -171,8 +171,8 @@ Promise<{{nickname}}Reply> {{classname}}::{{nickname}}({{#allParams}}const {{{da
         {{/isDefault}}
             {
                 {{#dataType}}
-                response.http_{{code}} = std::make_shared<{{{dataType}}}>();
-                serializer.fromJson(response.http_{{code}}.get(), doc.{{#isListContainer}}array{{/isListContainer}}{{^isListContainer}}object{{/isListContainer}}());
+                response.http_{{code}} = QSharedPointer<{{{dataType}}}>::create();
+                serializer.fromJson(response.http_{{code}}.data(), doc.{{#isListContainer}}array{{/isListContainer}}{{^isListContainer}}object{{/isListContainer}}());
                 {{/dataType}}
                 {{^dataType}}
                 response.http_{{code}} = true;

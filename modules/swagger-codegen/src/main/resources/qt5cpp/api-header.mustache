@@ -7,6 +7,7 @@
 #include "Promise.h"
 
 #include <QObject>
+#include <QSharedPointer>
 
 namespace Swagger {
 
@@ -19,7 +20,7 @@ struct {{nickname}}Reply
 
 {{#responses}}
     {{#dataType}}
-    std::shared_ptr<{{{dataType}}}> http_{{code}}; // {{{message}}}
+    QSharedPointer<{{{dataType}}}> http_{{code}}; // {{{message}}}
     {{/dataType}}
     {{^dataType}}
     bool http_{{code}} = false; // {{{message}}}
