@@ -21,6 +21,9 @@ class {{classname}}Data;
 
 class {{classname}} {
     Q_GADGET
+    {{#vars}}
+    Q_PROPERTY({{{datatype}}} {{name}} READ {{getter}})
+    {{/vars}}
 public:
     {{classname}}();
     {{classname}}(const {{classname}} &other);
