@@ -11,17 +11,19 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.XmlEnum;
 import javax.xml.bind.annotation.XmlEnumValue;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @ApiModel(description="Model for testing reserved words")
 public class ModelReturn  {
   
-  @ApiModelProperty(example = "null", value = "")
+  @ApiModelProperty(value = "")
   private Integer _return = null;
 
  /**
    * Get _return
    * @return _return
   **/
+  @JsonProperty("return")
   public Integer getReturn() {
     return _return;
   }

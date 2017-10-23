@@ -15,7 +15,9 @@
 #include <QSharedDataPointer>
 
 {{#models}}{{#model}}
-namespace Swagger {
+{{#cppNamespaceDeclarations}}
+namespace {{this}} {
+{{/cppNamespaceDeclarations}}
 
 class {{classname}}Data;
 
@@ -40,7 +42,9 @@ private:
     QSharedDataPointer<{{classname}}Data> d;
 };
 
-} /* namespace Swagger */
+{{#cppNamespaceDeclarations}}
+}
+{{/cppNamespaceDeclarations}}
 
 Q_DECLARE_TYPEINFO(Swagger::{{classname}}, Q_MOVABLE_TYPE);
 Q_DECLARE_METATYPE(Swagger::{{classname}})

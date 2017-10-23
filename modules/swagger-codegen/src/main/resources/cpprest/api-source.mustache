@@ -28,16 +28,16 @@ using namespace {{modelNamespace}};
 {{#operation}}
 pplx::task<{{#returnType}}{{{returnType}}}{{/returnType}}{{^returnType}}void{{/returnType}}> {{classname}}::{{operationId}}({{#allParams}}{{{dataType}}} {{paramName}}{{^required}}{{/required}}{{#hasMore}}, {{/hasMore}}{{/allParams}})
 {
-    {{#allParams}}{{#required}}{{^isPrimitiveType}}{{^isContainer}}
+{{#allParams}}{{#required}}{{^isPrimitiveType}}{{^isContainer}}
     // verify the required parameter '{{paramName}}' is set
     if ({{paramName}} == nullptr)
     {
         throw ApiException(400, U("Missing required parameter '{{paramName}}' when calling {{classname}}->{{operationId}}"));
     }
-    {{/isContainer}}{{/isPrimitiveType}}{{/required}}{{/allParams}}
+{{/isContainer}}{{/isPrimitiveType}}{{/required}}{{/allParams}}
 
     std::shared_ptr<ApiConfiguration> apiConfiguration( m_ApiClient->getConfiguration() );
-    utility::string_t path = U("{{path}}");
+    utility::string_t path = U("{{{path}}}");
     {{#pathParams}}boost::replace_all(path, U("{") U("{{baseName}}") U("}"), ApiClient::parameterToString({{{paramName}}}));
     {{/pathParams}}
 
@@ -221,9 +221,6 @@ pplx::task<{{#returnType}}{{{returnType}}}{{/returnType}}{{^returnType}}void{{/r
         throw ApiException(415, U("{{classname}}->{{operationId}} does not consume any supported media type"));
     }
 
-    //Set the request content type in the header.
-    headerParams[U("Content-Type")] = requestHttpContentType;
-
     {{#authMethods}}
     // authentication ({{name}}) required
     {{#isApiKey}}
@@ -325,7 +322,7 @@ pplx::task<{{#returnType}}{{{returnType}}}{{/returnType}}{{^returnType}}void{{/r
                 {{#vendorExtensions.x-codegen-response.items.isPrimitiveType}}result[item.first] = ModelBase::{{vendorExtensions.x-codegen-response.items.datatype}}FromJson(item.second);
                 {{/vendorExtensions.x-codegen-response.items.isPrimitiveType}}{{^vendorExtensions.x-codegen-response.items.isPrimitiveType}}{{#vendorExtensions.x-codegen-response.items.isString}}result[item.first] = ModelBase::stringFromJson(item.second);
                 {{/vendorExtensions.x-codegen-response.items.isString}}{{^vendorExtensions.x-codegen-response.items.isString}}{{{vendorExtensions.x-codegen-response.items.datatype}}} itemObj({{{vendorExtensions.x-codegen-response.items.defaultValue}}});
-                itemObj->fromJson(item);
+                itemObj->fromJson(item.second);
                 result[item.first] = itemObj;
                 {{/vendorExtensions.x-codegen-response.items.isString}}{{/vendorExtensions.x-codegen-response.items.isPrimitiveType}}
             }

@@ -45,7 +45,7 @@ private:
     QSharedDataPointer<SWGTagData> d;
 };
 
-} /* namespace Swagger */
+}
 
 Q_DECLARE_TYPEINFO(Swagger::SWGTag, Q_MOVABLE_TYPE);
 

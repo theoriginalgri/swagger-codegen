@@ -48,7 +48,7 @@ private:
     QSharedDataPointer<SWGApiResponseData> d;
 };
 
-} /* namespace Swagger */
+}
 
 Q_DECLARE_TYPEINFO(Swagger::SWGApiResponse, Q_MOVABLE_TYPE);
 

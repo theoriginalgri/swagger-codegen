@@ -11,17 +11,19 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.XmlEnum;
 import javax.xml.bind.annotation.XmlEnumValue;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Cat extends Animal {
   
-  @ApiModelProperty(example = "null", value = "")
+  @ApiModelProperty(value = "")
   private Boolean declawed = null;
 
  /**
    * Get declawed
    * @return declawed
   **/
-  public Boolean getDeclawed() {
+  @JsonProperty("declawed")
+  public Boolean isDeclawed() {
     return declawed;
   }
 

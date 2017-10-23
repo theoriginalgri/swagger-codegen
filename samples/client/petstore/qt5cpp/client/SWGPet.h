@@ -60,7 +60,7 @@ private:
     QSharedDataPointer<SWGPetData> d;
 };
 
-} /* namespace Swagger */
+}
 
 Q_DECLARE_TYPEINFO(Swagger::SWGPet, Q_MOVABLE_TYPE);
 

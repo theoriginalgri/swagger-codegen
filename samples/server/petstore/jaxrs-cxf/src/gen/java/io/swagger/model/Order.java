@@ -1,5 +1,6 @@
 package io.swagger.model;
 
+import java.util.Date;
 import javax.validation.constraints.*;
 
 import io.swagger.annotations.ApiModelProperty;
@@ -10,17 +11,18 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.XmlEnum;
 import javax.xml.bind.annotation.XmlEnumValue;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Order  {
   
-  @ApiModelProperty(example = "null", value = "")
+  @ApiModelProperty(value = "")
   private Long id = null;
-  @ApiModelProperty(example = "null", value = "")
+  @ApiModelProperty(value = "")
   private Long petId = null;
-  @ApiModelProperty(example = "null", value = "")
+  @ApiModelProperty(value = "")
   private Integer quantity = null;
-  @ApiModelProperty(example = "null", value = "")
-  private javax.xml.datatype.XMLGregorianCalendar shipDate = null;
+  @ApiModelProperty(value = "")
+  private Date shipDate = null;
 
 @XmlType(name="StatusEnum")
 @XmlEnum(String.class)
@@ -54,15 +56,16 @@ public enum StatusEnum {
     }
 }
 
-  @ApiModelProperty(example = "null", value = "Order Status")
+  @ApiModelProperty(value = "Order Status")
   private StatusEnum status = null;
-  @ApiModelProperty(example = "null", value = "")
+  @ApiModelProperty(value = "")
   private Boolean complete = false;
 
  /**
    * Get id
    * @return id
   **/
+  @JsonProperty("id")
   public Long getId() {
     return id;
   }
@@ -80,6 +83,7 @@ public enum StatusEnum {
    * Get petId
    * @return petId
   **/
+  @JsonProperty("petId")
   public Long getPetId() {
     return petId;
   }
@@ -97,6 +101,7 @@ public enum StatusEnum {
    * Get quantity
    * @return quantity
   **/
+  @JsonProperty("quantity")
   public Integer getQuantity() {
     return quantity;
   }
@@ -114,15 +119,16 @@ public enum StatusEnum {
    * Get shipDate
    * @return shipDate
   **/
-  public javax.xml.datatype.XMLGregorianCalendar getShipDate() {
+  @JsonProperty("shipDate")
+  public Date getShipDate() {
     return shipDate;
   }
 
-  public void setShipDate(javax.xml.datatype.XMLGregorianCalendar shipDate) {
+  public void setShipDate(Date shipDate) {
     this.shipDate = shipDate;
   }
 
-  public Order shipDate(javax.xml.datatype.XMLGregorianCalendar shipDate) {
+  public Order shipDate(Date shipDate) {
     this.shipDate = shipDate;
     return this;
   }
@@ -131,6 +137,7 @@ public enum StatusEnum {
    * Order Status
    * @return status
   **/
+  @JsonProperty("status")
   public StatusEnum getStatus() {
     return status;
   }
@@ -148,7 +155,8 @@ public enum StatusEnum {
    * Get complete
    * @return complete
   **/
-  public Boolean getComplete() {
+  @JsonProperty("complete")
+  public Boolean isComplete() {
     return complete;
   }
 

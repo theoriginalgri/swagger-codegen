@@ -45,7 +45,7 @@ private:
     QSharedDataPointer<SWGCategoryData> d;
 };
 
-} /* namespace Swagger */
+}
 
 Q_DECLARE_TYPEINFO(Swagger::SWGCategory, Q_MOVABLE_TYPE);
 

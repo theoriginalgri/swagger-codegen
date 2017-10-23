@@ -63,7 +63,7 @@ private:
     QSharedDataPointer<SWGUserData> d;
 };
 
-} /* namespace Swagger */
+}
 
 Q_DECLARE_TYPEINFO(Swagger::SWGUser, Q_MOVABLE_TYPE);
 

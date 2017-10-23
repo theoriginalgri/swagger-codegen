@@ -11,6 +11,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.XmlEnum;
 import javax.xml.bind.annotation.XmlEnumValue;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class EnumTest  {
   
@@ -47,7 +48,7 @@ public enum EnumStringEnum {
     }
 }
 
-  @ApiModelProperty(example = "null", value = "")
+  @ApiModelProperty(value = "")
   private EnumStringEnum enumString = null;
 
 @XmlType(name="EnumIntegerEnum")
@@ -82,7 +83,7 @@ public enum EnumIntegerEnum {
     }
 }
 
-  @ApiModelProperty(example = "null", value = "")
+  @ApiModelProperty(value = "")
   private EnumIntegerEnum enumInteger = null;
 
 @XmlType(name="EnumNumberEnum")
@@ -117,15 +118,16 @@ public enum EnumNumberEnum {
     }
 }
 
-  @ApiModelProperty(example = "null", value = "")
+  @ApiModelProperty(value = "")
   private EnumNumberEnum enumNumber = null;
-  @ApiModelProperty(example = "null", value = "")
+  @ApiModelProperty(value = "")
   private OuterEnum outerEnum = null;
 
  /**
    * Get enumString
    * @return enumString
   **/
+  @JsonProperty("enum_string")
   public EnumStringEnum getEnumString() {
     return enumString;
   }
@@ -143,6 +145,7 @@ public enum EnumNumberEnum {
    * Get enumInteger
    * @return enumInteger
   **/
+  @JsonProperty("enum_integer")
   public EnumIntegerEnum getEnumInteger() {
     return enumInteger;
   }
@@ -160,6 +163,7 @@ public enum EnumNumberEnum {
    * Get enumNumber
    * @return enumNumber
   **/
+  @JsonProperty("enum_number")
   public EnumNumberEnum getEnumNumber() {
     return enumNumber;
   }
@@ -177,6 +181,7 @@ public enum EnumNumberEnum {
    * Get outerEnum
    * @return outerEnum
   **/
+  @JsonProperty("outerEnum")
   public OuterEnum getOuterEnum() {
     return outerEnum;
   }

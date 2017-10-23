@@ -12,12 +12,9 @@ public class CodegenParameter {
     public String baseName, paramName, dataType, datatypeWithEnum, dataFormat,
           collectionFormat, description, unescapedDescription, baseType, defaultValue, enumName;
 
-    //This was added for javaPlayFramework specifically to get around a bug in swagger-play. See generator for more info on the bug.
-    public String dataTypeForImplicitParam;
-
     public String example; // example value (x-example)
     public String jsonSchema;
-    public boolean isString, isInteger, isLong, isFloat, isDouble, isByteArray, isBinary, isBoolean, isDate, isDateTime;
+    public boolean isString, isNumeric, isInteger, isLong, isFloat, isDouble, isByteArray, isBinary, isBoolean, isDate, isDateTime, isUuid;
     public boolean isListContainer, isMapContainer;
     public boolean isFile, notFile;
     public boolean isEnum;
@@ -34,49 +31,49 @@ public class CodegenParameter {
      */
     public boolean required;
 
-	/**
-	 * See http://json-schema.org/latest/json-schema-validation.html#anchor17.
-	 */
+    /**
+     * See http://json-schema.org/latest/json-schema-validation.html#anchor17.
+     */
     public String maximum;
-	/**
-	 * See http://json-schema.org/latest/json-schema-validation.html#anchor17
-	 */
+    /**
+     * See http://json-schema.org/latest/json-schema-validation.html#anchor17
+     */
     public boolean exclusiveMaximum;
-	/**
-	 * See http://json-schema.org/latest/json-schema-validation.html#anchor21
-	 */
+    /**
+     * See http://json-schema.org/latest/json-schema-validation.html#anchor21
+     */
     public String minimum;
-	/**
-	 * See http://json-schema.org/latest/json-schema-validation.html#anchor21
-	 */
+    /**
+     * See http://json-schema.org/latest/json-schema-validation.html#anchor21
+     */
     public boolean exclusiveMinimum;
-	/**
-	 * See http://json-schema.org/latest/json-schema-validation.html#anchor26
-	 */
+    /**
+     * See http://json-schema.org/latest/json-schema-validation.html#anchor26
+     */
     public Integer maxLength;
-	/**
-	 * See http://json-schema.org/latest/json-schema-validation.html#anchor29
-	 */
+    /**
+     * See http://json-schema.org/latest/json-schema-validation.html#anchor29
+     */
     public Integer minLength;
-	/**
-	 * See http://json-schema.org/latest/json-schema-validation.html#anchor33
-	 */
+    /**
+     * See http://json-schema.org/latest/json-schema-validation.html#anchor33
+     */
     public String pattern;
-	/**
-	 * See http://json-schema.org/latest/json-schema-validation.html#anchor42
-	 */
+    /**
+     * See http://json-schema.org/latest/json-schema-validation.html#anchor42
+     */
     public Integer maxItems;
-	/**
-	 * See http://json-schema.org/latest/json-schema-validation.html#anchor45
-	 */
+    /**
+     * See http://json-schema.org/latest/json-schema-validation.html#anchor45
+     */
     public Integer minItems;
-	/**
-	 * See http://json-schema.org/latest/json-schema-validation.html#anchor49
-	 */
+    /**
+     * See http://json-schema.org/latest/json-schema-validation.html#anchor49
+     */
     public boolean uniqueItems;
-	/**
-	 * See http://json-schema.org/latest/json-schema-validation.html#anchor14
-	 */
+    /**
+     * See http://json-schema.org/latest/json-schema-validation.html#anchor14
+     */
     public Number multipleOf;
     
     public CodegenParameter copy() {
@@ -94,6 +91,7 @@ public class CodegenParameter {
         output.dataFormat = this.dataFormat;
         output.collectionFormat = this.collectionFormat;
         output.isCollectionFormatMulti = this.isCollectionFormatMulti;
+        output.isPrimitiveType = this.isPrimitiveType;
         output.description = this.description;
         output.unescapedDescription = this.unescapedDescription;
         output.baseType = this.baseType;
@@ -135,6 +133,7 @@ public class CodegenParameter {
         output.isBinary = this.isBinary;
         output.isByteArray = this.isByteArray;
         output.isString = this.isString;
+        output.isNumeric = this.isNumeric;
         output.isInteger = this.isInteger;
         output.isLong = this.isLong;
         output.isDouble = this.isDouble;
@@ -142,6 +141,7 @@ public class CodegenParameter {
         output.isBoolean = this.isBoolean;
         output.isDate = this.isDate;
         output.isDateTime = this.isDateTime;
+        output.isUuid = this.isUuid;
         output.isListContainer = this.isListContainer;
         output.isMapContainer = this.isMapContainer;
 
@@ -211,6 +211,8 @@ public class CodegenParameter {
             return false;
         if (isString != that.isString)
             return false;
+        if (isNumeric != that.isNumeric)
+            return false;
         if (isInteger != that.isInteger)
             return false;
         if (isLong != that.isLong)
@@ -228,6 +230,8 @@ public class CodegenParameter {
         if (isDate != that.isDate)
             return false;
         if (isDateTime != that.isDateTime)
+            return false;
+        if (isUuid != that.isUuid)
             return false;
         if (isListContainer != that.isListContainer)
             return false;
@@ -300,6 +304,7 @@ public class CodegenParameter {
         result = 31 * result + (example != null ? example.hashCode() : 0);
         result = 31 * result + (jsonSchema != null ? jsonSchema.hashCode() : 0);
         result = 31 * result + (isString ? 13:31);
+        result = 31 * result + (isNumeric ? 13:31);
         result = 31 * result + (isInteger ? 13:31);
         result = 31 * result + (isLong ? 13:31);
         result = 31 * result + (isFloat ? 13:31);
@@ -309,6 +314,7 @@ public class CodegenParameter {
         result = 31 * result + (isBoolean ? 13:31);
         result = 31 * result + (isDate ? 13:31);
         result = 31 * result + (isDateTime ? 13:31);
+        result = 31 * result + (isUuid ? 13:31);
         result = 31 * result + (isListContainer ? 13:31);
         result = 31 * result + (isMapContainer ? 13:31);
         result = 31 * result + (isFile ? 13:31);

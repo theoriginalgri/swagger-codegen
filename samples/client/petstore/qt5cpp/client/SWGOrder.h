@@ -58,7 +58,7 @@ private:
     QSharedDataPointer<SWGOrderData> d;
 };
 
-} /* namespace Swagger */
+}
 
 Q_DECLARE_TYPEINFO(Swagger::SWGOrder, Q_MOVABLE_TYPE);
 
