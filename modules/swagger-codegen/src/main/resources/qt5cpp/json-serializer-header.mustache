@@ -11,7 +11,9 @@
 #include <QJsonArray>
 #include <QJsonObject>
 
-namespace Swagger {
+{{#cppNamespaceDeclarations}}
+namespace {{this}} {
+{{/cppNamespaceDeclarations}}
 
 class JsonSerializer
 {
@@ -126,6 +128,8 @@ QList<T> JsonSerializer::fromJson(const QJsonArray &array) {
     return list;
 }
 
-} // namespace Swagger
+{{#cppNamespaceDeclarations}}
+} // namespace {{this}}
+{{/cppNamespaceDeclarations}}
 
 #endif // JSON_SERIALIZER_H_

@@ -14,19 +14,21 @@
 #include <QSharedData>
 
 {{#models}}{{#model}}
-namespace Swagger {
+{{#cppNamespaceDeclarations}}
+namespace {{this}} {
+{{/cppNamespaceDeclarations}}
 
 class {{classname}}Data : public QSharedData {
 public:
     {{classname}}Data()
-    : QSharedData(){{#vars}}{{#defaultValue}}, {{name}}({{{defaultValue}}}){{/defaultValue}}{{/vars}}
+    : QSharedData(){{#vars}}{{#defaultValue}}, {{getter}}({{{defaultValue}}}){{/defaultValue}}{{/vars}}
     {
     }
 
     {{classname}}Data(const {{classname}}Data &other)
     : QSharedData(other)
     {{#vars}}
-    , {{name}}(other.{{name}})
+    , {{getter}}(other.{{getter}})
     {{/vars}}
     {
     }
@@ -35,11 +37,13 @@ public:
     }
 
     {{#vars}}
-    {{{datatype}}} {{name}};
+    {{{datatype}}} {{getter}};
     {{/vars}}
 };
 
-} /* namespace Swagger */
+{{#cppNamespaceDeclarations}}
+} // namespace {{this}}
+{{/cppNamespaceDeclarations}}
 
 #endif /* {{classname}}_PRIVATE_H_ */
 {{/model}}

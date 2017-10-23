@@ -5,7 +5,9 @@
 #include <QJsonArray>
 #include <QJsonObject>
 
-namespace Swagger {
+{{#cppNamespaceDeclarations}}
+namespace {{this}} {
+{{/cppNamespaceDeclarations}}
 
 JsonSerializer::JsonSerializer()
 {
@@ -152,4 +154,6 @@ bool JsonSerializer::fromJson(bool *dst, const QJsonValue &value)
     return true;
 }
 
-}
+{{#cppNamespaceDeclarations}}
+} // namespace {{this}}
+{{/cppNamespaceDeclarations}}

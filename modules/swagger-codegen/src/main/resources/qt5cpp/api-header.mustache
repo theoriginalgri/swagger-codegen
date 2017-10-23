@@ -9,7 +9,9 @@
 #include <QObject>
 #include <QSharedPointer>
 
-namespace Swagger {
+{{#cppNamespaceDeclarations}}
+namespace {{this}} {
+{{/cppNamespaceDeclarations}}
 
 {{#operations}}
 {{#operation}}
@@ -50,6 +52,8 @@ private:
     SwaggerConfig *m_config;
 };
 
-} // namespace Swagger
+{{#cppNamespaceDeclarations}}
+} // namespace {{this}}
+{{/cppNamespaceDeclarations}}
 
 #endif

@@ -8,7 +8,9 @@
 #include <QQmlEngine>
 #endif // QT_QML_LIB
 
-namespace Swagger {
+{{#cppNamespaceDeclarations}}
+namespace {{this}} {
+{{/cppNamespaceDeclarations}}
 
 SwaggerConfig::SwaggerConfig(QObject *parent)
 : QObject(parent)
@@ -91,4 +93,6 @@ void SwaggerConfig::processReply(QNetworkReply *reply)
     Q_UNUSED(reply);
 }
 
-} // namespace Swagger
+{{#cppNamespaceDeclarations}}
+} // namespace {{this}}
+{{/cppNamespaceDeclarations}}

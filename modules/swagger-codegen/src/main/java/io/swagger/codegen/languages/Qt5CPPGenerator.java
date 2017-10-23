@@ -24,7 +24,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class Qt5CPPGenerator extends DefaultCodegen implements CodegenConfig {
+public class Qt5CPPGenerator extends AbstractCppCodegen implements CodegenConfig {
+    public static final String CPP_NAMESPACE = "cppNamespace";
+    public static final String CPP_NAMESPACE_DESC = "C++ namespace (convention: name::space::for::api).";
+
     protected final String PREFIX = "SWG";
     protected Set<String> foundationClasses = new HashSet<String>();
     // source folder where to write the files
@@ -32,6 +35,7 @@ public class Qt5CPPGenerator extends DefaultCodegen implements CodegenConfig {
     protected String apiVersion = "1.0.0";
     protected Map<String, String> namespaces = new HashMap<String, String>();
     protected Set<String> systemIncludes = new HashSet<String>();
+    protected String cppNamespace = "Swagger";
 
     public Qt5CPPGenerator() {
         super();
@@ -77,6 +81,9 @@ public class Qt5CPPGenerator extends DefaultCodegen implements CodegenConfig {
          */
         embeddedTemplateDir = templateDir = "qt5cpp";
 
+        // CLI options
+        addOption(CPP_NAMESPACE, CPP_NAMESPACE_DESC, this.cppNamespace);
+
         /*
          * Reserved words.  Override this with reserved words specific to your language
          */
@@ -93,6 +100,11 @@ public class Qt5CPPGenerator extends DefaultCodegen implements CodegenConfig {
         additionalProperties.put("apiVersion", apiVersion);
         additionalProperties().put("prefix", PREFIX);
 
+        // Write defaults namespace in properties so that it can be accessible in templates.
+        // At this point command line has not been parsed so if value is given
+        // in command line it will superseed this content
+        additionalProperties.put("cppNamespace", cppNamespace);
+
         /*
          * Language Specific Primitives.  These types will not trigger imports by
          * the client generator
@@ -103,7 +115,8 @@ public class Qt5CPPGenerator extends DefaultCodegen implements CodegenConfig {
                         "qint32",
                         "qint64",
                         "float",
-                        "double")
+                        "double",
+                        "qreal")
         );
 
         supportingFiles.add(new SupportingFile("json-serializer-header.mustache", sourceFolder, "JsonSerializer.h"));
@@ -158,6 +171,24 @@ public class Qt5CPPGenerator extends DefaultCodegen implements CodegenConfig {
         systemIncludes.add("QHttpPart");
         systemIncludes.add("QVariantMap");
         systemIncludes.add("QVariantList");
+    }
+
+    protected void addOption(String key, String description, String defaultValue) {
+        CliOption option = new CliOption(key, description);
+        if (defaultValue != null)
+            option.defaultValue(defaultValue);
+        cliOptions.add(option);
+    }
+
+    @Override
+    public void processOpts() {
+        super.processOpts();
+
+        if (additionalProperties.containsKey("cppNamespace")){
+            cppNamespace = (String) additionalProperties.get("cppNamespace");
+        }
+
+        additionalProperties.put("cppNamespaceDeclarations", cppNamespace.split("\\::"));
     }
 
     /**

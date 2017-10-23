@@ -3,7 +3,9 @@
 #include "{{classname}}.h"
 #include "{{classname}}_p.h"
 
-namespace Swagger {
+{{#cppNamespaceDeclarations}}
+namespace {{this}} {
+{{/cppNamespaceDeclarations}}
 
 {{classname}}::{{classname}}()
 : d(new {{classname}}Data)
@@ -28,17 +30,19 @@ namespace Swagger {
 {{#vars}}
 {{{datatype}}} {{classname}}::{{getter}}() const
 {
-    return d->{{name}};
+    return d->{{getter}};
 }
 
-void {{classname}}::{{setter}}(const {{{datatype}}} &{{name}})
+void {{classname}}::{{setter}}(const {{{datatype}}} &{{getter}})
 {
-    d->{{name}} = {{name}};
+    d->{{getter}} = {{getter}};
 }
 
 {{/vars}}
 
-} /* namespace Swagger */
+{{#cppNamespaceDeclarations}}
+} // namespace {{this}}
+{{/cppNamespaceDeclarations}}
 
 {{/model}}
 {{/models}}

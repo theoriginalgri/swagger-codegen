@@ -24,7 +24,7 @@ class {{classname}}Data;
 class {{classname}} {
     Q_GADGET
     {{#vars}}
-    Q_PROPERTY({{{datatype}}} {{name}} READ {{getter}})
+    Q_PROPERTY({{{datatype}}} {{getter}} READ {{getter}})
     {{/vars}}
 public:
     {{classname}}();
@@ -35,7 +35,7 @@ public:
 
     {{#vars}}
     {{{datatype}}} {{getter}}() const;
-    void {{setter}}(const {{{datatype}}} &{{name}});
+    void {{setter}}(const {{{datatype}}} &{{getter}});
 
     {{/vars}}
 private:

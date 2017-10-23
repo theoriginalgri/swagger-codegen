@@ -12,7 +12,9 @@
 #include <QHttpPart>
 #include <QDebug>
 
-namespace Swagger {
+{{#cppNamespaceDeclarations}}
+namespace {{this}} {
+{{/cppNamespaceDeclarations}}
 
 {{classname}}::{{classname}}(QObject *parent)
 : QObject(parent)
@@ -193,4 +195,7 @@ Promise<{{nickname}}Reply> {{classname}}::{{nickname}}({{#allParams}}const {{{da
 
 {{/operation}}
 {{/operations}}
-} /* namespace Swagger */
+
+{{#cppNamespaceDeclarations}}
+} // namespace {{this}}
+{{/cppNamespaceDeclarations}}

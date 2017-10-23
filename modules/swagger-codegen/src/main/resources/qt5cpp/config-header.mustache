@@ -7,7 +7,9 @@
 #include <QMap>
 #include <QNetworkAccessManager>
 
-namespace Swagger {
+{{#cppNamespaceDeclarations}}
+namespace {{this}} {
+{{/cppNamespaceDeclarations}}
 
 class SwaggerConfig : public QObject
 {
@@ -40,6 +42,8 @@ private:
     QNetworkAccessManager *m_networkAccessManager = nullptr;
 };
 
-} // namespace Swagger
+{{#cppNamespaceDeclarations}}
+} // namespace {{this}}
+{{/cppNamespaceDeclarations}}
 
 #endif // SWAGGER_CONFIG_H_

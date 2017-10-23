@@ -7,7 +7,9 @@
 #include <QList>
 #include <functional>
 
-namespace Swagger {
+{{#cppNamespaceDeclarations}}
+namespace {{this}} {
+{{/cppNamespaceDeclarations}}
 
 template <typename... T>
 struct PromiseData {
@@ -59,6 +61,8 @@ private:
     QSharedPointer<PromiseData<T...> > m_data;
 };
 
-} // namespace Swagger
+{{#cppNamespaceDeclarations}}
+} // namespace {{this}}
+{{/cppNamespaceDeclarations}}
 
 #endif // PROMISE_H_
