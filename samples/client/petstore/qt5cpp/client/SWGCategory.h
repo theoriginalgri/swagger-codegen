@@ -30,10 +30,15 @@ namespace Swagger {
 class SWGCategoryData;
 
 class SWGCategory {
+    Q_GADGET
+    Q_PROPERTY(qint64 id READ id)
+    Q_PROPERTY(QString name READ name)
 public:
     SWGCategory();
     SWGCategory(const SWGCategory &other);
     ~SWGCategory();
+
+    SWGCategory &operator =(const SWGCategory &other);
 
     qint64 id() const;
     void setId(const qint64 &id);
@@ -48,5 +53,6 @@ private:
 }
 
 Q_DECLARE_TYPEINFO(Swagger::SWGCategory, Q_MOVABLE_TYPE);
+Q_DECLARE_METATYPE(Swagger::SWGCategory)
 
 #endif /* SWGCategory_H_ */

@@ -11,22 +11,29 @@
  */
 
 #include "SWGStoreApi.h"
-#include "SWGHelpers.h"
-#include "SWGModelFactory.h"
+#include "JsonSerializer.h"
+#include "NetworkHelper.h"
 
+#include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QNetworkRequest>
+#include <QNetworkReply>
+#include <QUrlQuery>
+#include <QHttpPart>
+#include <QDebug>
 
 namespace Swagger {
 
 SWGStoreApi::SWGStoreApi(QObject *parent)
 : QObject(parent)
+, m_config(nullptr)
 {
 }
 
-SWGStoreApi::SWGStoreApi(const SwaggerConfig &config, QObject *parent)
+SWGStoreApi::SWGStoreApi(SwaggerConfig *config, QObject *parent)
 : QObject(parent)
-, config(config)
+, m_config(config)
 {
 }
 
@@ -34,94 +41,405 @@ SWGStoreApi::~SWGStoreApi()
 {
 }
 
-Promise<> SWGStoreApi::deleteOrder(QString order_id) {
-    QString fullPath;
-    fullPath.append(config.host()).append(config.basePath()).append("/store/order/{orderId}");
-
-    QString order_idPathParam("{"); order_idPathParam.append("orderId").append("}");
-    fullPath.replace(order_idPathParam, stringValue(order_id));
-
-
-    HttpRequestWorker *worker = new HttpRequestWorker();
-    HttpRequestInput input(fullPath, "DELETE");
-
-    
-
-
-
-    connect(worker,
-            &HttpRequestWorker::on_execution_finished,
-            this,
-            &SWGStoreApi::deleteOrderCallback);
-
-    worker->execute(&input);
+void SWGStoreApi::setConfig(SwaggerConfig *config)
+{
+    m_config = config;
 }
 
-Promise<QMap<QString, qint32>> SWGStoreApi::getInventory() {
-    QString fullPath;
-    fullPath.append(config.host()).append(config.basePath()).append("/store/inventory");
-
-
-
-    HttpRequestWorker *worker = new HttpRequestWorker();
-    HttpRequestInput input(fullPath, "GET");
-
-    
-
-
-
-    connect(worker,
-            &HttpRequestWorker::on_execution_finished,
-            this,
-            &SWGStoreApi::getInventoryCallback);
-
-    worker->execute(&input);
+SwaggerConfig *SWGStoreApi::config() const
+{
+    return m_config;
 }
 
-Promise<SWGOrder> SWGStoreApi::getOrderById(qint64 order_id) {
-    QString fullPath;
-    fullPath.append(config.host()).append(config.basePath()).append("/store/order/{orderId}");
+Promise<deleteOrderReply> SWGStoreApi::deleteOrder(const QString &order_id) {
+    QUrl url(m_config->url());
+    QString fullPath = url.path() + "/store/order/{orderId}";
 
-    QString order_idPathParam("{"); order_idPathParam.append("orderId").append("}");
-    fullPath.replace(order_idPathParam, stringValue(order_id));
+    fullPath.replace("{orderId}", QVariant::fromValue(order_id).toString());
+    url.setPath(fullPath);
+
+    QUrlQuery query(url);
+
+    // START authentication
+    // END authentication
+
+    url.setQuery(query);
+
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, QVariant::fromValue(true));
+
+    NetworkHelper helper;
+
+    JsonSerializer serializer;
+    QJsonDocument doc;
 
 
-    HttpRequestWorker *worker = new HttpRequestWorker();
-    HttpRequestInput input(fullPath, "GET");
-
-    
+    // Set post content
+    helper.setData(doc.toJson());
 
 
+    // START authentication
+    // END authentication
 
-    connect(worker,
-            &HttpRequestWorker::on_execution_finished,
-            this,
-            &SWGStoreApi::getOrderByIdCallback);
+    m_config->prepareRequest(&request);
 
-    worker->execute(&input);
+    QNetworkReply *reply = helper.execute("DELETE", request, m_config->networkAccessManager());
+
+    m_config->processReply(reply);
+
+    Promise<deleteOrderReply> *promise = new Promise<deleteOrderReply>;
+
+    connect(reply, &QNetworkReply::finished, [=](){
+        JsonSerializer serializer;
+        deleteOrderReply response;
+        response.httpResponse = reply;
+
+        // TODO: Error handling
+        if (reply->error() != QNetworkReply::NoError) {
+            promise->reject();
+
+            qDebug() << "HTTP error:" << reply->errorString() << reply->readAll();
+
+            reply->deleteLater();
+            delete promise;
+            return;
+        }
+
+        QByteArray data = reply->readAll();
+
+        QJsonDocument doc;
+        if (!data.isEmpty()) {
+            QJsonParseError error;
+            doc = QJsonDocument::fromJson(data, &error);
+
+            if (error.error != QJsonParseError::NoError) {
+                promise->reject();
+
+                qDebug() << "JSON parse error:" << error.errorString();
+
+                reply->deleteLater();
+                delete promise;
+                return;
+            }
+        }
+
+        int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        response.statusCode = statusCode;
+        switch(statusCode) {
+        case 400: // Invalid ID supplied
+            {
+                response.http_400 = true;
+            }
+            break;
+        case 404: // Order not found
+            {
+                response.http_404 = true;
+            }
+            break;
+        }
+
+        promise->resolve(response);
+
+        reply->deleteLater();
+        delete promise;
+    });
+
+    return *promise;
 }
 
-Promise<SWGOrder> SWGStoreApi::placeOrder(SWGOrder body) {
-    QString fullPath;
-    fullPath.append(config.host()).append(config.basePath()).append("/store/order");
+Promise<getInventoryReply> SWGStoreApi::getInventory() {
+    QUrl url(m_config->url());
+    QString fullPath = url.path() + "/store/inventory";
+
+    url.setPath(fullPath);
+
+    QUrlQuery query(url);
+
+    // START authentication
+    // END authentication
+
+    url.setQuery(query);
+
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, QVariant::fromValue(true));
+
+    NetworkHelper helper;
+
+    JsonSerializer serializer;
+    QJsonDocument doc;
 
 
+    // Set post content
+    helper.setData(doc.toJson());
 
-    HttpRequestWorker *worker = new HttpRequestWorker();
-    HttpRequestInput input(fullPath, "POST");
 
+    // START authentication
+    request.setRawHeader("api_key", m_config->apiKey("api_key"));
+    // END authentication
+
+    m_config->prepareRequest(&request);
+
+    QNetworkReply *reply = helper.execute("GET", request, m_config->networkAccessManager());
+
+    m_config->processReply(reply);
+
+    Promise<getInventoryReply> *promise = new Promise<getInventoryReply>;
+
+    connect(reply, &QNetworkReply::finished, [=](){
+        JsonSerializer serializer;
+        getInventoryReply response;
+        response.httpResponse = reply;
+
+        // TODO: Error handling
+        if (reply->error() != QNetworkReply::NoError) {
+            promise->reject();
+
+            qDebug() << "HTTP error:" << reply->errorString() << reply->readAll();
+
+            reply->deleteLater();
+            delete promise;
+            return;
+        }
+
+        QByteArray data = reply->readAll();
+
+        QJsonDocument doc;
+        if (!data.isEmpty()) {
+            QJsonParseError error;
+            doc = QJsonDocument::fromJson(data, &error);
+
+            if (error.error != QJsonParseError::NoError) {
+                promise->reject();
+
+                qDebug() << "JSON parse error:" << error.errorString();
+
+                reply->deleteLater();
+                delete promise;
+                return;
+            }
+        }
+
+        int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        response.statusCode = statusCode;
+        switch(statusCode) {
+        default: // successful operation
+            {
+                response.http_200 = QSharedPointer<QMap<QString, qint32>>::create();
+                serializer.fromJson(response.http_200.data(), doc.object());
+            }
+            break;
+        }
+
+        promise->resolve(response);
+
+        reply->deleteLater();
+        delete promise;
+    });
+
+    return *promise;
+}
+
+Promise<getOrderByIdReply> SWGStoreApi::getOrderById(const qint64 &order_id) {
+    QUrl url(m_config->url());
+    QString fullPath = url.path() + "/store/order/{orderId}";
+
+    fullPath.replace("{orderId}", QVariant::fromValue(order_id).toString());
+    url.setPath(fullPath);
+
+    QUrlQuery query(url);
+
+    // START authentication
+    // END authentication
+
+    url.setQuery(query);
+
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, QVariant::fromValue(true));
+
+    NetworkHelper helper;
+
+    JsonSerializer serializer;
+    QJsonDocument doc;
+
+
+    // Set post content
+    helper.setData(doc.toJson());
+
+
+    // START authentication
+    // END authentication
+
+    m_config->prepareRequest(&request);
+
+    QNetworkReply *reply = helper.execute("GET", request, m_config->networkAccessManager());
+
+    m_config->processReply(reply);
+
+    Promise<getOrderByIdReply> *promise = new Promise<getOrderByIdReply>;
+
+    connect(reply, &QNetworkReply::finished, [=](){
+        JsonSerializer serializer;
+        getOrderByIdReply response;
+        response.httpResponse = reply;
+
+        // TODO: Error handling
+        if (reply->error() != QNetworkReply::NoError) {
+            promise->reject();
+
+            qDebug() << "HTTP error:" << reply->errorString() << reply->readAll();
+
+            reply->deleteLater();
+            delete promise;
+            return;
+        }
+
+        QByteArray data = reply->readAll();
+
+        QJsonDocument doc;
+        if (!data.isEmpty()) {
+            QJsonParseError error;
+            doc = QJsonDocument::fromJson(data, &error);
+
+            if (error.error != QJsonParseError::NoError) {
+                promise->reject();
+
+                qDebug() << "JSON parse error:" << error.errorString();
+
+                reply->deleteLater();
+                delete promise;
+                return;
+            }
+        }
+
+        int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        response.statusCode = statusCode;
+        switch(statusCode) {
+        default: // successful operation
+            {
+                response.http_200 = QSharedPointer<SWGOrder>::create();
+                serializer.fromJson(response.http_200.data(), doc.object());
+            }
+            break;
+        case 400: // Invalid ID supplied
+            {
+                response.http_400 = true;
+            }
+            break;
+        case 404: // Order not found
+            {
+                response.http_404 = true;
+            }
+            break;
+        }
+
+        promise->resolve(response);
+
+        reply->deleteLater();
+        delete promise;
+    });
+
+    return *promise;
+}
+
+Promise<placeOrderReply> SWGStoreApi::placeOrder(const SWGOrder &body) {
+    QUrl url(m_config->url());
+    QString fullPath = url.path() + "/store/order";
+
+    url.setPath(fullPath);
+
+    QUrlQuery query(url);
+
+    // START authentication
+    // END authentication
+
+    url.setQuery(query);
+
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, QVariant::fromValue(true));
+
+    NetworkHelper helper;
+
+    JsonSerializer serializer;
+    QJsonDocument doc;
+    doc.setObject(serializer.toJson(body));
     
-    QString output = body.asJson();
-    input.request_body.append(output);
-    
+
+    // Set post content
+    helper.setData(doc.toJson());
 
 
-    connect(worker,
-            &HttpRequestWorker::on_execution_finished,
-            this,
-            &SWGStoreApi::placeOrderCallback);
+    // START authentication
+    // END authentication
 
-    worker->execute(&input);
+    m_config->prepareRequest(&request);
+
+    QNetworkReply *reply = helper.execute("POST", request, m_config->networkAccessManager());
+
+    m_config->processReply(reply);
+
+    Promise<placeOrderReply> *promise = new Promise<placeOrderReply>;
+
+    connect(reply, &QNetworkReply::finished, [=](){
+        JsonSerializer serializer;
+        placeOrderReply response;
+        response.httpResponse = reply;
+
+        // TODO: Error handling
+        if (reply->error() != QNetworkReply::NoError) {
+            promise->reject();
+
+            qDebug() << "HTTP error:" << reply->errorString() << reply->readAll();
+
+            reply->deleteLater();
+            delete promise;
+            return;
+        }
+
+        QByteArray data = reply->readAll();
+
+        QJsonDocument doc;
+        if (!data.isEmpty()) {
+            QJsonParseError error;
+            doc = QJsonDocument::fromJson(data, &error);
+
+            if (error.error != QJsonParseError::NoError) {
+                promise->reject();
+
+                qDebug() << "JSON parse error:" << error.errorString();
+
+                reply->deleteLater();
+                delete promise;
+                return;
+            }
+        }
+
+        int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        response.statusCode = statusCode;
+        switch(statusCode) {
+        default: // successful operation
+            {
+                response.http_200 = QSharedPointer<SWGOrder>::create();
+                serializer.fromJson(response.http_200.data(), doc.object());
+            }
+            break;
+        case 400: // Invalid Order
+            {
+                response.http_400 = true;
+            }
+            break;
+        }
+
+        promise->resolve(response);
+
+        reply->deleteLater();
+        delete promise;
+    });
+
+    return *promise;
 }
 
 } /* namespace Swagger */

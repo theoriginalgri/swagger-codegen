@@ -30,10 +30,15 @@ namespace Swagger {
 class SWGTagData;
 
 class SWGTag {
+    Q_GADGET
+    Q_PROPERTY(qint64 id READ id)
+    Q_PROPERTY(QString name READ name)
 public:
     SWGTag();
     SWGTag(const SWGTag &other);
     ~SWGTag();
+
+    SWGTag &operator =(const SWGTag &other);
 
     qint64 id() const;
     void setId(const qint64 &id);
@@ -48,5 +53,6 @@ private:
 }
 
 Q_DECLARE_TYPEINFO(Swagger::SWGTag, Q_MOVABLE_TYPE);
+Q_DECLARE_METATYPE(Swagger::SWGTag)
 
 #endif /* SWGTag_H_ */

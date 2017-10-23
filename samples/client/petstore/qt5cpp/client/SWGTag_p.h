@@ -10,52 +10,43 @@
  * Do not edit the class manually.
  */
 
+/*
+* SWGTag.h
+*
+* A tag for a pet
+*/
 
-#include "SWGTag.h"
-#include "SWGTag_p.h"
+#ifndef SWGTag_PRIVATE_H_
+#define SWGTag_PRIVATE_H_
+
+
+#include <QString>
+#include <QSharedData>
+
 
 namespace Swagger {
 
-SWGTag::SWGTag()
-: d(new SWGTagData)
-{
-}
+class SWGTagData : public QSharedData {
+public:
+    SWGTagData()
+    : QSharedData(), id(0L)
+    {
+    }
 
-SWGTag::SWGTag(const SWGTag &other)
-: d(other.d)
-{
-}
+    SWGTagData(const SWGTagData &other)
+    : QSharedData(other)
+    , id(other.id)
+    , name(other.name)
+    {
+    }
 
-SWGTag::~SWGTag()
-{
-}
+    ~SWGTagData() {
+    }
 
-SWGTag &SWGTag::operator =(const SWGTag &other)
-{
-    d = other.d;
-    return *this;
-}
-
-qint64 SWGTag::id() const
-{
-    return d->id;
-}
-
-void SWGTag::setId(const qint64 &id)
-{
-    d->id = id;
-}
-
-QString SWGTag::name() const
-{
-    return d->name;
-}
-
-void SWGTag::setName(const QString &name)
-{
-    d->name = name;
-}
-
+    qint64 id;
+    QString name;
+};
 
 } /* namespace Swagger */
 
+#endif /* SWGTag_PRIVATE_H_ */

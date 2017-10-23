@@ -30,6 +30,12 @@ SWGPet::~SWGPet()
 {
 }
 
+SWGPet &SWGPet::operator =(const SWGPet &other)
+{
+    d = other.d;
+    return *this;
+}
+
 qint64 SWGPet::id() const
 {
     return d->id;

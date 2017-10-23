@@ -13,15 +13,52 @@
 #ifndef _SWG_SWGStoreApi_H_
 #define _SWG_SWGStoreApi_H_
 
-#include "SWGHttpRequest.h"
-
 #include <QMap>
 #include <QString>
 #include "SWGOrder.h"
+#include "Promise.h"
 
 #include <QObject>
+#include <QSharedPointer>
 
 namespace Swagger {
+
+struct deleteOrderReply
+{
+    QNetworkReply *httpResponse = nullptr;
+    int statusCode = 0;
+
+    bool http_400 = false; // Invalid ID supplied
+    bool http_404 = false; // Order not found
+};
+
+struct getInventoryReply
+{
+    QNetworkReply *httpResponse = nullptr;
+    int statusCode = 0;
+
+    QSharedPointer<QMap<QString, qint32>> http_200; // successful operation
+};
+
+struct getOrderByIdReply
+{
+    QNetworkReply *httpResponse = nullptr;
+    int statusCode = 0;
+
+    QSharedPointer<SWGOrder> http_200; // successful operation
+    bool http_400 = false; // Invalid ID supplied
+    bool http_404 = false; // Order not found
+};
+
+struct placeOrderReply
+{
+    QNetworkReply *httpResponse = nullptr;
+    int statusCode = 0;
+
+    QSharedPointer<SWGOrder> http_200; // successful operation
+    bool http_400 = false; // Invalid Order
+};
+
 
 class SWGStoreApi : public QObject
 {
@@ -29,20 +66,22 @@ class SWGStoreApi : public QObject
 
 public:
     explicit SWGStoreApi(QObject *parent = Q_NULLPTR);
-    SWGStoreApi(const SwaggerConfig &config, QObject *parent = Q_NULLPTR);
+    SWGStoreApi(SwaggerConfig *config, QObject *parent = Q_NULLPTR);
     ~SWGStoreApi();
 
-    void setConfig(const SwaggerConfig &config);
-    SwaggerConfig config() const;
+    void setConfig(SwaggerConfig *config);
+    SwaggerConfig *config() const;
 
-    Promise<> deleteOrder(const QString &order_id);
-    Promise<QMap<QString, qint32>> getInventory();
-    Promise<SWGOrder> getOrderById(const qint64 &order_id);
-    Promise<SWGOrder> placeOrder(const SWGOrder &body);
+    Promise<deleteOrderReply> deleteOrder(const QString &order_id);
+    Promise<getInventoryReply> getInventory();
+    Promise<getOrderByIdReply> getOrderById(const qint64 &order_id);
+    Promise<placeOrderReply> placeOrder(const SWGOrder &body);
     
 
 private:
-    SwaggerConfig config;
+    SwaggerConfig *m_config;
 };
-}
+
+} // namespace Swagger
+
 #endif

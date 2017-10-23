@@ -30,6 +30,12 @@ SWGOrder::~SWGOrder()
 {
 }
 
+SWGOrder &SWGOrder::operator =(const SWGOrder &other)
+{
+    d = other.d;
+    return *this;
+}
+
 qint64 SWGOrder::id() const
 {
     return d->id;

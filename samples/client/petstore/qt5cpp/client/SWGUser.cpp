@@ -30,6 +30,12 @@ SWGUser::~SWGUser()
 {
 }
 
+SWGUser &SWGUser::operator =(const SWGUser &other)
+{
+    d = other.d;
+    return *this;
+}
+
 qint64 SWGUser::id() const
 {
     return d->id;

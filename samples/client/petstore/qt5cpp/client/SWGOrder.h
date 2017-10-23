@@ -31,10 +31,19 @@ namespace Swagger {
 class SWGOrderData;
 
 class SWGOrder {
+    Q_GADGET
+    Q_PROPERTY(qint64 id READ id)
+    Q_PROPERTY(qint64 pet_id READ petId)
+    Q_PROPERTY(qint32 quantity READ quantity)
+    Q_PROPERTY(QDateTime ship_date READ shipDate)
+    Q_PROPERTY(QString status READ status)
+    Q_PROPERTY(bool complete READ complete)
 public:
     SWGOrder();
     SWGOrder(const SWGOrder &other);
     ~SWGOrder();
+
+    SWGOrder &operator =(const SWGOrder &other);
 
     qint64 id() const;
     void setId(const qint64 &id);
@@ -61,5 +70,6 @@ private:
 }
 
 Q_DECLARE_TYPEINFO(Swagger::SWGOrder, Q_MOVABLE_TYPE);
+Q_DECLARE_METATYPE(Swagger::SWGOrder)
 
 #endif /* SWGOrder_H_ */

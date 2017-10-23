@@ -11,22 +11,29 @@
  */
 
 #include "SWGUserApi.h"
-#include "SWGHelpers.h"
-#include "SWGModelFactory.h"
+#include "JsonSerializer.h"
+#include "NetworkHelper.h"
 
+#include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QNetworkRequest>
+#include <QNetworkReply>
+#include <QUrlQuery>
+#include <QHttpPart>
+#include <QDebug>
 
 namespace Swagger {
 
 SWGUserApi::SWGUserApi(QObject *parent)
 : QObject(parent)
+, m_config(nullptr)
 {
 }
 
-SWGUserApi::SWGUserApi(const SwaggerConfig &config, QObject *parent)
+SWGUserApi::SWGUserApi(SwaggerConfig *config, QObject *parent)
 : QObject(parent)
-, config(config)
+, m_config(config)
 {
 }
 
@@ -34,212 +41,778 @@ SWGUserApi::~SWGUserApi()
 {
 }
 
-Promise<> SWGUserApi::createUser(SWGUser body) {
-    QString fullPath;
-    fullPath.append(config.host()).append(config.basePath()).append("/user");
-
-
-
-    HttpRequestWorker *worker = new HttpRequestWorker();
-    HttpRequestInput input(fullPath, "POST");
-
-    
-    QString output = body.asJson();
-    input.request_body.append(output);
-    
-
-
-    connect(worker,
-            &HttpRequestWorker::on_execution_finished,
-            this,
-            &SWGUserApi::createUserCallback);
-
-    worker->execute(&input);
+void SWGUserApi::setConfig(SwaggerConfig *config)
+{
+    m_config = config;
 }
 
-Promise<> SWGUserApi::createUsersWithArrayInput(QList<SWGUser> body) {
-    QString fullPath;
-    fullPath.append(config.host()).append(config.basePath()).append("/user/createWithArray");
-
-
-
-    HttpRequestWorker *worker = new HttpRequestWorker();
-    HttpRequestInput input(fullPath, "POST");
-
-    
-    QJsonArray* bodyArray = new QJsonArray();
-    toJsonArray((QList<void*>*)body, bodyArray, QString("body"), QString("SWGUser*"));
-
-    QJsonDocument doc(*bodyArray);
-    QByteArray bytes = doc.toJson();
-
-    input.request_body.append(bytes);
-
-
-
-    connect(worker,
-            &HttpRequestWorker::on_execution_finished,
-            this,
-            &SWGUserApi::createUsersWithArrayInputCallback);
-
-    worker->execute(&input);
+SwaggerConfig *SWGUserApi::config() const
+{
+    return m_config;
 }
 
-Promise<> SWGUserApi::createUsersWithListInput(QList<SWGUser> body) {
-    QString fullPath;
-    fullPath.append(config.host()).append(config.basePath()).append("/user/createWithList");
+Promise<createUserReply> SWGUserApi::createUser(const SWGUser &body) {
+    QUrl url(m_config->url());
+    QString fullPath = url.path() + "/user";
 
+    url.setPath(fullPath);
 
+    QUrlQuery query(url);
 
-    HttpRequestWorker *worker = new HttpRequestWorker();
-    HttpRequestInput input(fullPath, "POST");
+    // START authentication
+    // END authentication
 
+    url.setQuery(query);
+
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, QVariant::fromValue(true));
+
+    NetworkHelper helper;
+
+    JsonSerializer serializer;
+    QJsonDocument doc;
+    doc.setObject(serializer.toJson(body));
     
-    QJsonArray* bodyArray = new QJsonArray();
-    toJsonArray((QList<void*>*)body, bodyArray, QString("body"), QString("SWGUser*"));
 
-    QJsonDocument doc(*bodyArray);
-    QByteArray bytes = doc.toJson();
-
-    input.request_body.append(bytes);
+    // Set post content
+    helper.setData(doc.toJson());
 
 
+    // START authentication
+    // END authentication
 
-    connect(worker,
-            &HttpRequestWorker::on_execution_finished,
-            this,
-            &SWGUserApi::createUsersWithListInputCallback);
+    m_config->prepareRequest(&request);
 
-    worker->execute(&input);
+    QNetworkReply *reply = helper.execute("POST", request, m_config->networkAccessManager());
+
+    m_config->processReply(reply);
+
+    Promise<createUserReply> *promise = new Promise<createUserReply>;
+
+    connect(reply, &QNetworkReply::finished, [=](){
+        JsonSerializer serializer;
+        createUserReply response;
+        response.httpResponse = reply;
+
+        // TODO: Error handling
+        if (reply->error() != QNetworkReply::NoError) {
+            promise->reject();
+
+            qDebug() << "HTTP error:" << reply->errorString() << reply->readAll();
+
+            reply->deleteLater();
+            delete promise;
+            return;
+        }
+
+        QByteArray data = reply->readAll();
+
+        QJsonDocument doc;
+        if (!data.isEmpty()) {
+            QJsonParseError error;
+            doc = QJsonDocument::fromJson(data, &error);
+
+            if (error.error != QJsonParseError::NoError) {
+                promise->reject();
+
+                qDebug() << "JSON parse error:" << error.errorString();
+
+                reply->deleteLater();
+                delete promise;
+                return;
+            }
+        }
+
+        int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        response.statusCode = statusCode;
+        switch(statusCode) {
+        default: // successful operation
+            {
+                response.http_0 = true;
+            }
+            break;
+        }
+
+        promise->resolve(response);
+
+        reply->deleteLater();
+        delete promise;
+    });
+
+    return *promise;
 }
 
-Promise<> SWGUserApi::deleteUser(QString username) {
-    QString fullPath;
-    fullPath.append(config.host()).append(config.basePath()).append("/user/{username}");
+Promise<createUsersWithArrayInputReply> SWGUserApi::createUsersWithArrayInput(const QList<SWGUser> &body) {
+    QUrl url(m_config->url());
+    QString fullPath = url.path() + "/user/createWithArray";
 
-    QString usernamePathParam("{"); usernamePathParam.append("username").append("}");
-    fullPath.replace(usernamePathParam, stringValue(username));
+    url.setPath(fullPath);
+
+    QUrlQuery query(url);
+
+    // START authentication
+    // END authentication
+
+    url.setQuery(query);
+
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, QVariant::fromValue(true));
+
+    NetworkHelper helper;
+
+    JsonSerializer serializer;
+    QJsonDocument doc;
+    doc.setArray(serializer.toJson(body));
 
 
-    HttpRequestWorker *worker = new HttpRequestWorker();
-    HttpRequestInput input(fullPath, "DELETE");
-
-    
+    // Set post content
+    helper.setData(doc.toJson());
 
 
+    // START authentication
+    // END authentication
 
-    connect(worker,
-            &HttpRequestWorker::on_execution_finished,
-            this,
-            &SWGUserApi::deleteUserCallback);
+    m_config->prepareRequest(&request);
 
-    worker->execute(&input);
+    QNetworkReply *reply = helper.execute("POST", request, m_config->networkAccessManager());
+
+    m_config->processReply(reply);
+
+    Promise<createUsersWithArrayInputReply> *promise = new Promise<createUsersWithArrayInputReply>;
+
+    connect(reply, &QNetworkReply::finished, [=](){
+        JsonSerializer serializer;
+        createUsersWithArrayInputReply response;
+        response.httpResponse = reply;
+
+        // TODO: Error handling
+        if (reply->error() != QNetworkReply::NoError) {
+            promise->reject();
+
+            qDebug() << "HTTP error:" << reply->errorString() << reply->readAll();
+
+            reply->deleteLater();
+            delete promise;
+            return;
+        }
+
+        QByteArray data = reply->readAll();
+
+        QJsonDocument doc;
+        if (!data.isEmpty()) {
+            QJsonParseError error;
+            doc = QJsonDocument::fromJson(data, &error);
+
+            if (error.error != QJsonParseError::NoError) {
+                promise->reject();
+
+                qDebug() << "JSON parse error:" << error.errorString();
+
+                reply->deleteLater();
+                delete promise;
+                return;
+            }
+        }
+
+        int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        response.statusCode = statusCode;
+        switch(statusCode) {
+        default: // successful operation
+            {
+                response.http_0 = true;
+            }
+            break;
+        }
+
+        promise->resolve(response);
+
+        reply->deleteLater();
+        delete promise;
+    });
+
+    return *promise;
 }
 
-Promise<SWGUser> SWGUserApi::getUserByName(QString username) {
-    QString fullPath;
-    fullPath.append(config.host()).append(config.basePath()).append("/user/{username}");
+Promise<createUsersWithListInputReply> SWGUserApi::createUsersWithListInput(const QList<SWGUser> &body) {
+    QUrl url(m_config->url());
+    QString fullPath = url.path() + "/user/createWithList";
 
-    QString usernamePathParam("{"); usernamePathParam.append("username").append("}");
-    fullPath.replace(usernamePathParam, stringValue(username));
+    url.setPath(fullPath);
+
+    QUrlQuery query(url);
+
+    // START authentication
+    // END authentication
+
+    url.setQuery(query);
+
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, QVariant::fromValue(true));
+
+    NetworkHelper helper;
+
+    JsonSerializer serializer;
+    QJsonDocument doc;
+    doc.setArray(serializer.toJson(body));
 
 
-    HttpRequestWorker *worker = new HttpRequestWorker();
-    HttpRequestInput input(fullPath, "GET");
-
-    
+    // Set post content
+    helper.setData(doc.toJson());
 
 
+    // START authentication
+    // END authentication
 
-    connect(worker,
-            &HttpRequestWorker::on_execution_finished,
-            this,
-            &SWGUserApi::getUserByNameCallback);
+    m_config->prepareRequest(&request);
 
-    worker->execute(&input);
+    QNetworkReply *reply = helper.execute("POST", request, m_config->networkAccessManager());
+
+    m_config->processReply(reply);
+
+    Promise<createUsersWithListInputReply> *promise = new Promise<createUsersWithListInputReply>;
+
+    connect(reply, &QNetworkReply::finished, [=](){
+        JsonSerializer serializer;
+        createUsersWithListInputReply response;
+        response.httpResponse = reply;
+
+        // TODO: Error handling
+        if (reply->error() != QNetworkReply::NoError) {
+            promise->reject();
+
+            qDebug() << "HTTP error:" << reply->errorString() << reply->readAll();
+
+            reply->deleteLater();
+            delete promise;
+            return;
+        }
+
+        QByteArray data = reply->readAll();
+
+        QJsonDocument doc;
+        if (!data.isEmpty()) {
+            QJsonParseError error;
+            doc = QJsonDocument::fromJson(data, &error);
+
+            if (error.error != QJsonParseError::NoError) {
+                promise->reject();
+
+                qDebug() << "JSON parse error:" << error.errorString();
+
+                reply->deleteLater();
+                delete promise;
+                return;
+            }
+        }
+
+        int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        response.statusCode = statusCode;
+        switch(statusCode) {
+        default: // successful operation
+            {
+                response.http_0 = true;
+            }
+            break;
+        }
+
+        promise->resolve(response);
+
+        reply->deleteLater();
+        delete promise;
+    });
+
+    return *promise;
 }
 
-Promise<QString> SWGUserApi::loginUser(QString username, QString password) {
-    QString fullPath;
-    fullPath.append(config.host()).append(config.basePath()).append("/user/login");
+Promise<deleteUserReply> SWGUserApi::deleteUser(const QString &username) {
+    QUrl url(m_config->url());
+    QString fullPath = url.path() + "/user/{username}";
+
+    fullPath.replace("{username}", QVariant::fromValue(username).toString());
+    url.setPath(fullPath);
+
+    QUrlQuery query(url);
+
+    // START authentication
+    // END authentication
+
+    url.setQuery(query);
+
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, QVariant::fromValue(true));
+
+    NetworkHelper helper;
+
+    JsonSerializer serializer;
+    QJsonDocument doc;
 
 
-    if (fullPath.indexOf("?") > 0) 
-      fullPath.append("&");
-    else 
-      fullPath.append("?");
-    fullPath.append(QUrl::toPercentEncoding("username"))
-        .append("=")
-        .append(QUrl::toPercentEncoding(stringValue(username)));
-
-    if (fullPath.indexOf("?") > 0) 
-      fullPath.append("&");
-    else 
-      fullPath.append("?");
-    fullPath.append(QUrl::toPercentEncoding("password"))
-        .append("=")
-        .append(QUrl::toPercentEncoding(stringValue(password)));
+    // Set post content
+    helper.setData(doc.toJson());
 
 
-    HttpRequestWorker *worker = new HttpRequestWorker();
-    HttpRequestInput input(fullPath, "GET");
+    // START authentication
+    // END authentication
 
-    
+    m_config->prepareRequest(&request);
 
+    QNetworkReply *reply = helper.execute("DELETE", request, m_config->networkAccessManager());
 
+    m_config->processReply(reply);
 
-    connect(worker,
-            &HttpRequestWorker::on_execution_finished,
-            this,
-            &SWGUserApi::loginUserCallback);
+    Promise<deleteUserReply> *promise = new Promise<deleteUserReply>;
 
-    worker->execute(&input);
+    connect(reply, &QNetworkReply::finished, [=](){
+        JsonSerializer serializer;
+        deleteUserReply response;
+        response.httpResponse = reply;
+
+        // TODO: Error handling
+        if (reply->error() != QNetworkReply::NoError) {
+            promise->reject();
+
+            qDebug() << "HTTP error:" << reply->errorString() << reply->readAll();
+
+            reply->deleteLater();
+            delete promise;
+            return;
+        }
+
+        QByteArray data = reply->readAll();
+
+        QJsonDocument doc;
+        if (!data.isEmpty()) {
+            QJsonParseError error;
+            doc = QJsonDocument::fromJson(data, &error);
+
+            if (error.error != QJsonParseError::NoError) {
+                promise->reject();
+
+                qDebug() << "JSON parse error:" << error.errorString();
+
+                reply->deleteLater();
+                delete promise;
+                return;
+            }
+        }
+
+        int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        response.statusCode = statusCode;
+        switch(statusCode) {
+        case 400: // Invalid username supplied
+            {
+                response.http_400 = true;
+            }
+            break;
+        case 404: // User not found
+            {
+                response.http_404 = true;
+            }
+            break;
+        }
+
+        promise->resolve(response);
+
+        reply->deleteLater();
+        delete promise;
+    });
+
+    return *promise;
 }
 
-Promise<> SWGUserApi::logoutUser() {
-    QString fullPath;
-    fullPath.append(config.host()).append(config.basePath()).append("/user/logout");
+Promise<getUserByNameReply> SWGUserApi::getUserByName(const QString &username) {
+    QUrl url(m_config->url());
+    QString fullPath = url.path() + "/user/{username}";
+
+    fullPath.replace("{username}", QVariant::fromValue(username).toString());
+    url.setPath(fullPath);
+
+    QUrlQuery query(url);
+
+    // START authentication
+    // END authentication
+
+    url.setQuery(query);
+
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, QVariant::fromValue(true));
+
+    NetworkHelper helper;
+
+    JsonSerializer serializer;
+    QJsonDocument doc;
 
 
-
-    HttpRequestWorker *worker = new HttpRequestWorker();
-    HttpRequestInput input(fullPath, "GET");
-
-    
+    // Set post content
+    helper.setData(doc.toJson());
 
 
+    // START authentication
+    // END authentication
 
-    connect(worker,
-            &HttpRequestWorker::on_execution_finished,
-            this,
-            &SWGUserApi::logoutUserCallback);
+    m_config->prepareRequest(&request);
 
-    worker->execute(&input);
+    QNetworkReply *reply = helper.execute("GET", request, m_config->networkAccessManager());
+
+    m_config->processReply(reply);
+
+    Promise<getUserByNameReply> *promise = new Promise<getUserByNameReply>;
+
+    connect(reply, &QNetworkReply::finished, [=](){
+        JsonSerializer serializer;
+        getUserByNameReply response;
+        response.httpResponse = reply;
+
+        // TODO: Error handling
+        if (reply->error() != QNetworkReply::NoError) {
+            promise->reject();
+
+            qDebug() << "HTTP error:" << reply->errorString() << reply->readAll();
+
+            reply->deleteLater();
+            delete promise;
+            return;
+        }
+
+        QByteArray data = reply->readAll();
+
+        QJsonDocument doc;
+        if (!data.isEmpty()) {
+            QJsonParseError error;
+            doc = QJsonDocument::fromJson(data, &error);
+
+            if (error.error != QJsonParseError::NoError) {
+                promise->reject();
+
+                qDebug() << "JSON parse error:" << error.errorString();
+
+                reply->deleteLater();
+                delete promise;
+                return;
+            }
+        }
+
+        int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        response.statusCode = statusCode;
+        switch(statusCode) {
+        default: // successful operation
+            {
+                response.http_200 = QSharedPointer<SWGUser>::create();
+                serializer.fromJson(response.http_200.data(), doc.object());
+            }
+            break;
+        case 400: // Invalid username supplied
+            {
+                response.http_400 = true;
+            }
+            break;
+        case 404: // User not found
+            {
+                response.http_404 = true;
+            }
+            break;
+        }
+
+        promise->resolve(response);
+
+        reply->deleteLater();
+        delete promise;
+    });
+
+    return *promise;
 }
 
-Promise<> SWGUserApi::updateUser(QString username, SWGUser body) {
-    QString fullPath;
-    fullPath.append(config.host()).append(config.basePath()).append("/user/{username}");
+Promise<loginUserReply> SWGUserApi::loginUser(const QString &username, const QString &password) {
+    QUrl url(m_config->url());
+    QString fullPath = url.path() + "/user/login";
 
-    QString usernamePathParam("{"); usernamePathParam.append("username").append("}");
-    fullPath.replace(usernamePathParam, stringValue(username));
+    url.setPath(fullPath);
+
+    QUrlQuery query(url);
+    query.addQueryItem("username", QVariant::fromValue(username).toString());
+    query.addQueryItem("password", QVariant::fromValue(password).toString());
+
+    // START authentication
+    // END authentication
+
+    url.setQuery(query);
+
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, QVariant::fromValue(true));
+
+    NetworkHelper helper;
+
+    JsonSerializer serializer;
+    QJsonDocument doc;
 
 
-    HttpRequestWorker *worker = new HttpRequestWorker();
-    HttpRequestInput input(fullPath, "PUT");
+    // Set post content
+    helper.setData(doc.toJson());
 
+
+    // START authentication
+    // END authentication
+
+    m_config->prepareRequest(&request);
+
+    QNetworkReply *reply = helper.execute("GET", request, m_config->networkAccessManager());
+
+    m_config->processReply(reply);
+
+    Promise<loginUserReply> *promise = new Promise<loginUserReply>;
+
+    connect(reply, &QNetworkReply::finished, [=](){
+        JsonSerializer serializer;
+        loginUserReply response;
+        response.httpResponse = reply;
+
+        // TODO: Error handling
+        if (reply->error() != QNetworkReply::NoError) {
+            promise->reject();
+
+            qDebug() << "HTTP error:" << reply->errorString() << reply->readAll();
+
+            reply->deleteLater();
+            delete promise;
+            return;
+        }
+
+        QByteArray data = reply->readAll();
+
+        QJsonDocument doc;
+        if (!data.isEmpty()) {
+            QJsonParseError error;
+            doc = QJsonDocument::fromJson(data, &error);
+
+            if (error.error != QJsonParseError::NoError) {
+                promise->reject();
+
+                qDebug() << "JSON parse error:" << error.errorString();
+
+                reply->deleteLater();
+                delete promise;
+                return;
+            }
+        }
+
+        int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        response.statusCode = statusCode;
+        switch(statusCode) {
+        default: // successful operation
+            {
+                response.http_200 = QSharedPointer<QString>::create();
+                serializer.fromJson(response.http_200.data(), doc.object());
+            }
+            break;
+        case 400: // Invalid username/password supplied
+            {
+                response.http_400 = true;
+            }
+            break;
+        }
+
+        promise->resolve(response);
+
+        reply->deleteLater();
+        delete promise;
+    });
+
+    return *promise;
+}
+
+Promise<logoutUserReply> SWGUserApi::logoutUser() {
+    QUrl url(m_config->url());
+    QString fullPath = url.path() + "/user/logout";
+
+    url.setPath(fullPath);
+
+    QUrlQuery query(url);
+
+    // START authentication
+    // END authentication
+
+    url.setQuery(query);
+
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, QVariant::fromValue(true));
+
+    NetworkHelper helper;
+
+    JsonSerializer serializer;
+    QJsonDocument doc;
+
+
+    // Set post content
+    helper.setData(doc.toJson());
+
+
+    // START authentication
+    // END authentication
+
+    m_config->prepareRequest(&request);
+
+    QNetworkReply *reply = helper.execute("GET", request, m_config->networkAccessManager());
+
+    m_config->processReply(reply);
+
+    Promise<logoutUserReply> *promise = new Promise<logoutUserReply>;
+
+    connect(reply, &QNetworkReply::finished, [=](){
+        JsonSerializer serializer;
+        logoutUserReply response;
+        response.httpResponse = reply;
+
+        // TODO: Error handling
+        if (reply->error() != QNetworkReply::NoError) {
+            promise->reject();
+
+            qDebug() << "HTTP error:" << reply->errorString() << reply->readAll();
+
+            reply->deleteLater();
+            delete promise;
+            return;
+        }
+
+        QByteArray data = reply->readAll();
+
+        QJsonDocument doc;
+        if (!data.isEmpty()) {
+            QJsonParseError error;
+            doc = QJsonDocument::fromJson(data, &error);
+
+            if (error.error != QJsonParseError::NoError) {
+                promise->reject();
+
+                qDebug() << "JSON parse error:" << error.errorString();
+
+                reply->deleteLater();
+                delete promise;
+                return;
+            }
+        }
+
+        int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        response.statusCode = statusCode;
+        switch(statusCode) {
+        default: // successful operation
+            {
+                response.http_0 = true;
+            }
+            break;
+        }
+
+        promise->resolve(response);
+
+        reply->deleteLater();
+        delete promise;
+    });
+
+    return *promise;
+}
+
+Promise<updateUserReply> SWGUserApi::updateUser(const QString &username, const SWGUser &body) {
+    QUrl url(m_config->url());
+    QString fullPath = url.path() + "/user/{username}";
+
+    fullPath.replace("{username}", QVariant::fromValue(username).toString());
+    url.setPath(fullPath);
+
+    QUrlQuery query(url);
+
+    // START authentication
+    // END authentication
+
+    url.setQuery(query);
+
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, QVariant::fromValue(true));
+
+    NetworkHelper helper;
+
+    JsonSerializer serializer;
+    QJsonDocument doc;
+    doc.setObject(serializer.toJson(body));
     
-    QString output = body.asJson();
-    input.request_body.append(output);
-    
+
+    // Set post content
+    helper.setData(doc.toJson());
 
 
-    connect(worker,
-            &HttpRequestWorker::on_execution_finished,
-            this,
-            &SWGUserApi::updateUserCallback);
+    // START authentication
+    // END authentication
 
-    worker->execute(&input);
+    m_config->prepareRequest(&request);
+
+    QNetworkReply *reply = helper.execute("PUT", request, m_config->networkAccessManager());
+
+    m_config->processReply(reply);
+
+    Promise<updateUserReply> *promise = new Promise<updateUserReply>;
+
+    connect(reply, &QNetworkReply::finished, [=](){
+        JsonSerializer serializer;
+        updateUserReply response;
+        response.httpResponse = reply;
+
+        // TODO: Error handling
+        if (reply->error() != QNetworkReply::NoError) {
+            promise->reject();
+
+            qDebug() << "HTTP error:" << reply->errorString() << reply->readAll();
+
+            reply->deleteLater();
+            delete promise;
+            return;
+        }
+
+        QByteArray data = reply->readAll();
+
+        QJsonDocument doc;
+        if (!data.isEmpty()) {
+            QJsonParseError error;
+            doc = QJsonDocument::fromJson(data, &error);
+
+            if (error.error != QJsonParseError::NoError) {
+                promise->reject();
+
+                qDebug() << "JSON parse error:" << error.errorString();
+
+                reply->deleteLater();
+                delete promise;
+                return;
+            }
+        }
+
+        int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        response.statusCode = statusCode;
+        switch(statusCode) {
+        case 400: // Invalid user supplied
+            {
+                response.http_400 = true;
+            }
+            break;
+        case 404: // User not found
+            {
+                response.http_404 = true;
+            }
+            break;
+        }
+
+        promise->resolve(response);
+
+        reply->deleteLater();
+        delete promise;
+    });
+
+    return *promise;
 }
 
 } /* namespace Swagger */

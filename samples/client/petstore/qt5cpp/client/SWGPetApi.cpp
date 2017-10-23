@@ -11,22 +11,29 @@
  */
 
 #include "SWGPetApi.h"
-#include "SWGHelpers.h"
-#include "SWGModelFactory.h"
+#include "JsonSerializer.h"
+#include "NetworkHelper.h"
 
+#include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QNetworkRequest>
+#include <QNetworkReply>
+#include <QUrlQuery>
+#include <QHttpPart>
+#include <QDebug>
 
 namespace Swagger {
 
 SWGPetApi::SWGPetApi(QObject *parent)
 : QObject(parent)
+, m_config(nullptr)
 {
 }
 
-SWGPetApi::SWGPetApi(const SwaggerConfig &config, QObject *parent)
+SWGPetApi::SWGPetApi(SwaggerConfig *config, QObject *parent)
 : QObject(parent)
-, config(config)
+, m_config(config)
 {
 }
 
@@ -34,281 +41,790 @@ SWGPetApi::~SWGPetApi()
 {
 }
 
-Promise<> SWGPetApi::addPet(SWGPet body) {
-    QString fullPath;
-    fullPath.append(config.host()).append(config.basePath()).append("/pet");
-
-
-
-    HttpRequestWorker *worker = new HttpRequestWorker();
-    HttpRequestInput input(fullPath, "POST");
-
-    
-    QString output = body.asJson();
-    input.request_body.append(output);
-    
-
-
-    connect(worker,
-            &HttpRequestWorker::on_execution_finished,
-            this,
-            &SWGPetApi::addPetCallback);
-
-    worker->execute(&input);
+void SWGPetApi::setConfig(SwaggerConfig *config)
+{
+    m_config = config;
 }
 
-Promise<> SWGPetApi::deletePet(qint64 pet_id, QString api_key) {
-    QString fullPath;
-    fullPath.append(config.host()).append(config.basePath()).append("/pet/{petId}");
-
-    QString pet_idPathParam("{"); pet_idPathParam.append("petId").append("}");
-    fullPath.replace(pet_idPathParam, stringValue(pet_id));
-
-
-    HttpRequestWorker *worker = new HttpRequestWorker();
-    HttpRequestInput input(fullPath, "DELETE");
-
-    
-
-
-    // TODO: add header support
-
-    connect(worker,
-            &HttpRequestWorker::on_execution_finished,
-            this,
-            &SWGPetApi::deletePetCallback);
-
-    worker->execute(&input);
+SwaggerConfig *SWGPetApi::config() const
+{
+    return m_config;
 }
 
-Promise<QList<SWGPet>> SWGPetApi::findPetsByStatus(QList<QString> status) {
-    QString fullPath;
-    fullPath.append(config.host()).append(config.basePath()).append("/pet/findByStatus");
+Promise<addPetReply> SWGPetApi::addPet(const SWGPet &body) {
+    QUrl url(m_config->url());
+    QString fullPath = url.path() + "/pet";
+
+    url.setPath(fullPath);
+
+    QUrlQuery query(url);
+
+    // START authentication
+    // END authentication
+
+    url.setQuery(query);
+
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, QVariant::fromValue(true));
+
+    NetworkHelper helper;
+
+    JsonSerializer serializer;
+    QJsonDocument doc;
+    doc.setObject(serializer.toJson(body));
+    
+
+    // Set post content
+    helper.setData(doc.toJson());
 
 
+    // START authentication
+    // END authentication
 
+    m_config->prepareRequest(&request);
 
-    if (status->size() > 0) {
-      if (QString("csv").indexOf("multi") == 0) {
-        foreach(QString t, *status) {
-          if (fullPath.indexOf("?") > 0)
-            fullPath.append("&");
-          else 
-            fullPath.append("?");
-          fullPath.append("status=").append(stringValue(t));
+    QNetworkReply *reply = helper.execute("POST", request, m_config->networkAccessManager());
+
+    m_config->processReply(reply);
+
+    Promise<addPetReply> *promise = new Promise<addPetReply>;
+
+    connect(reply, &QNetworkReply::finished, [=](){
+        JsonSerializer serializer;
+        addPetReply response;
+        response.httpResponse = reply;
+
+        // TODO: Error handling
+        if (reply->error() != QNetworkReply::NoError) {
+            promise->reject();
+
+            qDebug() << "HTTP error:" << reply->errorString() << reply->readAll();
+
+            reply->deleteLater();
+            delete promise;
+            return;
         }
-      }
-      else if (QString("csv").indexOf("ssv") == 0) {
-        if (fullPath.indexOf("?") > 0)
-          fullPath.append("&");
-        else 
-          fullPath.append("?");
-        fullPath.append("status=");
-        qint32 count = 0;
-        foreach(QString t, *status) {
-          if (count > 0) {
-            fullPath.append(" ");
-          }
-          fullPath.append(stringValue(t));
+
+        QByteArray data = reply->readAll();
+
+        QJsonDocument doc;
+        if (!data.isEmpty()) {
+            QJsonParseError error;
+            doc = QJsonDocument::fromJson(data, &error);
+
+            if (error.error != QJsonParseError::NoError) {
+                promise->reject();
+
+                qDebug() << "JSON parse error:" << error.errorString();
+
+                reply->deleteLater();
+                delete promise;
+                return;
+            }
         }
-      }
-      else if (QString("csv").indexOf("tsv") == 0) {
-        if (fullPath.indexOf("?") > 0)
-          fullPath.append("&");
-        else 
-          fullPath.append("?");
-        fullPath.append("status=");
-        qint32 count = 0;
-        foreach(QString t, *status) {
-          if (count > 0) {
-            fullPath.append("\t");
-          }
-          fullPath.append(stringValue(t));
+
+        int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        response.statusCode = statusCode;
+        switch(statusCode) {
+        case 405: // Invalid input
+            {
+                response.http_405 = true;
+            }
+            break;
         }
-      }
-    }
 
+        promise->resolve(response);
 
-    HttpRequestWorker *worker = new HttpRequestWorker();
-    HttpRequestInput input(fullPath, "GET");
+        reply->deleteLater();
+        delete promise;
+    });
 
-    
-
-
-
-    connect(worker,
-            &HttpRequestWorker::on_execution_finished,
-            this,
-            &SWGPetApi::findPetsByStatusCallback);
-
-    worker->execute(&input);
+    return *promise;
 }
 
-Promise<QList<SWGPet>> SWGPetApi::findPetsByTags(QList<QString> tags) {
-    QString fullPath;
-    fullPath.append(config.host()).append(config.basePath()).append("/pet/findByTags");
+Promise<deletePetReply> SWGPetApi::deletePet(const qint64 &pet_id, const QString &api_key) {
+    QUrl url(m_config->url());
+    QString fullPath = url.path() + "/pet/{petId}";
+
+    fullPath.replace("{petId}", QVariant::fromValue(pet_id).toString());
+    url.setPath(fullPath);
+
+    QUrlQuery query(url);
+
+    // START authentication
+    // END authentication
+
+    url.setQuery(query);
+
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, QVariant::fromValue(true));
+
+    NetworkHelper helper;
+
+    JsonSerializer serializer;
+    QJsonDocument doc;
 
 
+    // Set post content
+    helper.setData(doc.toJson());
 
+    request.setRawHeader("api_key", QVariant::fromValue(api_key).toByteArray());
 
-    if (tags->size() > 0) {
-      if (QString("csv").indexOf("multi") == 0) {
-        foreach(QString t, *tags) {
-          if (fullPath.indexOf("?") > 0)
-            fullPath.append("&");
-          else 
-            fullPath.append("?");
-          fullPath.append("tags=").append(stringValue(t));
+    // START authentication
+    // END authentication
+
+    m_config->prepareRequest(&request);
+
+    QNetworkReply *reply = helper.execute("DELETE", request, m_config->networkAccessManager());
+
+    m_config->processReply(reply);
+
+    Promise<deletePetReply> *promise = new Promise<deletePetReply>;
+
+    connect(reply, &QNetworkReply::finished, [=](){
+        JsonSerializer serializer;
+        deletePetReply response;
+        response.httpResponse = reply;
+
+        // TODO: Error handling
+        if (reply->error() != QNetworkReply::NoError) {
+            promise->reject();
+
+            qDebug() << "HTTP error:" << reply->errorString() << reply->readAll();
+
+            reply->deleteLater();
+            delete promise;
+            return;
         }
-      }
-      else if (QString("csv").indexOf("ssv") == 0) {
-        if (fullPath.indexOf("?") > 0)
-          fullPath.append("&");
-        else 
-          fullPath.append("?");
-        fullPath.append("tags=");
-        qint32 count = 0;
-        foreach(QString t, *tags) {
-          if (count > 0) {
-            fullPath.append(" ");
-          }
-          fullPath.append(stringValue(t));
+
+        QByteArray data = reply->readAll();
+
+        QJsonDocument doc;
+        if (!data.isEmpty()) {
+            QJsonParseError error;
+            doc = QJsonDocument::fromJson(data, &error);
+
+            if (error.error != QJsonParseError::NoError) {
+                promise->reject();
+
+                qDebug() << "JSON parse error:" << error.errorString();
+
+                reply->deleteLater();
+                delete promise;
+                return;
+            }
         }
-      }
-      else if (QString("csv").indexOf("tsv") == 0) {
-        if (fullPath.indexOf("?") > 0)
-          fullPath.append("&");
-        else 
-          fullPath.append("?");
-        fullPath.append("tags=");
-        qint32 count = 0;
-        foreach(QString t, *tags) {
-          if (count > 0) {
-            fullPath.append("\t");
-          }
-          fullPath.append(stringValue(t));
+
+        int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        response.statusCode = statusCode;
+        switch(statusCode) {
+        case 400: // Invalid pet value
+            {
+                response.http_400 = true;
+            }
+            break;
         }
-      }
-    }
 
+        promise->resolve(response);
 
-    HttpRequestWorker *worker = new HttpRequestWorker();
-    HttpRequestInput input(fullPath, "GET");
+        reply->deleteLater();
+        delete promise;
+    });
 
-    
-
-
-
-    connect(worker,
-            &HttpRequestWorker::on_execution_finished,
-            this,
-            &SWGPetApi::findPetsByTagsCallback);
-
-    worker->execute(&input);
+    return *promise;
 }
 
-Promise<SWGPet> SWGPetApi::getPetById(qint64 pet_id) {
-    QString fullPath;
-    fullPath.append(config.host()).append(config.basePath()).append("/pet/{petId}");
+Promise<findPetsByStatusReply> SWGPetApi::findPetsByStatus(const QList<QString> &status) {
+    QUrl url(m_config->url());
+    QString fullPath = url.path() + "/pet/findByStatus";
 
-    QString pet_idPathParam("{"); pet_idPathParam.append("petId").append("}");
-    fullPath.replace(pet_idPathParam, stringValue(pet_id));
+    url.setPath(fullPath);
+
+    QUrlQuery query(url);
+    query.addQueryItem("status", formatCollectionParameter(status, "csv"));
+
+    // START authentication
+    // END authentication
+
+    url.setQuery(query);
+
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, QVariant::fromValue(true));
+
+    NetworkHelper helper;
+
+    JsonSerializer serializer;
+    QJsonDocument doc;
 
 
-    HttpRequestWorker *worker = new HttpRequestWorker();
-    HttpRequestInput input(fullPath, "GET");
-
-    
+    // Set post content
+    helper.setData(doc.toJson());
 
 
+    // START authentication
+    // END authentication
 
-    connect(worker,
-            &HttpRequestWorker::on_execution_finished,
-            this,
-            &SWGPetApi::getPetByIdCallback);
+    m_config->prepareRequest(&request);
 
-    worker->execute(&input);
+    QNetworkReply *reply = helper.execute("GET", request, m_config->networkAccessManager());
+
+    m_config->processReply(reply);
+
+    Promise<findPetsByStatusReply> *promise = new Promise<findPetsByStatusReply>;
+
+    connect(reply, &QNetworkReply::finished, [=](){
+        JsonSerializer serializer;
+        findPetsByStatusReply response;
+        response.httpResponse = reply;
+
+        // TODO: Error handling
+        if (reply->error() != QNetworkReply::NoError) {
+            promise->reject();
+
+            qDebug() << "HTTP error:" << reply->errorString() << reply->readAll();
+
+            reply->deleteLater();
+            delete promise;
+            return;
+        }
+
+        QByteArray data = reply->readAll();
+
+        QJsonDocument doc;
+        if (!data.isEmpty()) {
+            QJsonParseError error;
+            doc = QJsonDocument::fromJson(data, &error);
+
+            if (error.error != QJsonParseError::NoError) {
+                promise->reject();
+
+                qDebug() << "JSON parse error:" << error.errorString();
+
+                reply->deleteLater();
+                delete promise;
+                return;
+            }
+        }
+
+        int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        response.statusCode = statusCode;
+        switch(statusCode) {
+        default: // successful operation
+            {
+                response.http_200 = QSharedPointer<QList<SWGPet>>::create();
+                serializer.fromJson(response.http_200.data(), doc.array());
+            }
+            break;
+        case 400: // Invalid status value
+            {
+                response.http_400 = true;
+            }
+            break;
+        }
+
+        promise->resolve(response);
+
+        reply->deleteLater();
+        delete promise;
+    });
+
+    return *promise;
 }
 
-Promise<> SWGPetApi::updatePet(SWGPet body) {
-    QString fullPath;
-    fullPath.append(config.host()).append(config.basePath()).append("/pet");
+Promise<findPetsByTagsReply> SWGPetApi::findPetsByTags(const QList<QString> &tags) {
+    QUrl url(m_config->url());
+    QString fullPath = url.path() + "/pet/findByTags";
+
+    url.setPath(fullPath);
+
+    QUrlQuery query(url);
+    query.addQueryItem("tags", formatCollectionParameter(tags, "csv"));
+
+    // START authentication
+    // END authentication
+
+    url.setQuery(query);
+
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, QVariant::fromValue(true));
+
+    NetworkHelper helper;
+
+    JsonSerializer serializer;
+    QJsonDocument doc;
 
 
-
-    HttpRequestWorker *worker = new HttpRequestWorker();
-    HttpRequestInput input(fullPath, "PUT");
-
-    
-    QString output = body.asJson();
-    input.request_body.append(output);
-    
+    // Set post content
+    helper.setData(doc.toJson());
 
 
-    connect(worker,
-            &HttpRequestWorker::on_execution_finished,
-            this,
-            &SWGPetApi::updatePetCallback);
+    // START authentication
+    // END authentication
 
-    worker->execute(&input);
+    m_config->prepareRequest(&request);
+
+    QNetworkReply *reply = helper.execute("GET", request, m_config->networkAccessManager());
+
+    m_config->processReply(reply);
+
+    Promise<findPetsByTagsReply> *promise = new Promise<findPetsByTagsReply>;
+
+    connect(reply, &QNetworkReply::finished, [=](){
+        JsonSerializer serializer;
+        findPetsByTagsReply response;
+        response.httpResponse = reply;
+
+        // TODO: Error handling
+        if (reply->error() != QNetworkReply::NoError) {
+            promise->reject();
+
+            qDebug() << "HTTP error:" << reply->errorString() << reply->readAll();
+
+            reply->deleteLater();
+            delete promise;
+            return;
+        }
+
+        QByteArray data = reply->readAll();
+
+        QJsonDocument doc;
+        if (!data.isEmpty()) {
+            QJsonParseError error;
+            doc = QJsonDocument::fromJson(data, &error);
+
+            if (error.error != QJsonParseError::NoError) {
+                promise->reject();
+
+                qDebug() << "JSON parse error:" << error.errorString();
+
+                reply->deleteLater();
+                delete promise;
+                return;
+            }
+        }
+
+        int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        response.statusCode = statusCode;
+        switch(statusCode) {
+        default: // successful operation
+            {
+                response.http_200 = QSharedPointer<QList<SWGPet>>::create();
+                serializer.fromJson(response.http_200.data(), doc.array());
+            }
+            break;
+        case 400: // Invalid tag value
+            {
+                response.http_400 = true;
+            }
+            break;
+        }
+
+        promise->resolve(response);
+
+        reply->deleteLater();
+        delete promise;
+    });
+
+    return *promise;
 }
 
-Promise<> SWGPetApi::updatePetWithForm(qint64 pet_id, QString name, QString status) {
-    QString fullPath;
-    fullPath.append(config.host()).append(config.basePath()).append("/pet/{petId}");
+Promise<getPetByIdReply> SWGPetApi::getPetById(const qint64 &pet_id) {
+    QUrl url(m_config->url());
+    QString fullPath = url.path() + "/pet/{petId}";
 
-    QString pet_idPathParam("{"); pet_idPathParam.append("petId").append("}");
-    fullPath.replace(pet_idPathParam, stringValue(pet_id));
+    fullPath.replace("{petId}", QVariant::fromValue(pet_id).toString());
+    url.setPath(fullPath);
+
+    QUrlQuery query(url);
+
+    // START authentication
+    // END authentication
+
+    url.setQuery(query);
+
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, QVariant::fromValue(true));
+
+    NetworkHelper helper;
+
+    JsonSerializer serializer;
+    QJsonDocument doc;
 
 
-    HttpRequestWorker *worker = new HttpRequestWorker();
-    HttpRequestInput input(fullPath, "POST");
-
-    if (name != nullptr) {
-        input.add_var("name", *name);
-    }
-if (status != nullptr) {
-        input.add_var("status", *status);
-    }
+    // Set post content
+    helper.setData(doc.toJson());
 
 
+    // START authentication
+    request.setRawHeader("api_key", m_config->apiKey("api_key"));
+    // END authentication
 
+    m_config->prepareRequest(&request);
 
-    connect(worker,
-            &HttpRequestWorker::on_execution_finished,
-            this,
-            &SWGPetApi::updatePetWithFormCallback);
+    QNetworkReply *reply = helper.execute("GET", request, m_config->networkAccessManager());
 
-    worker->execute(&input);
+    m_config->processReply(reply);
+
+    Promise<getPetByIdReply> *promise = new Promise<getPetByIdReply>;
+
+    connect(reply, &QNetworkReply::finished, [=](){
+        JsonSerializer serializer;
+        getPetByIdReply response;
+        response.httpResponse = reply;
+
+        // TODO: Error handling
+        if (reply->error() != QNetworkReply::NoError) {
+            promise->reject();
+
+            qDebug() << "HTTP error:" << reply->errorString() << reply->readAll();
+
+            reply->deleteLater();
+            delete promise;
+            return;
+        }
+
+        QByteArray data = reply->readAll();
+
+        QJsonDocument doc;
+        if (!data.isEmpty()) {
+            QJsonParseError error;
+            doc = QJsonDocument::fromJson(data, &error);
+
+            if (error.error != QJsonParseError::NoError) {
+                promise->reject();
+
+                qDebug() << "JSON parse error:" << error.errorString();
+
+                reply->deleteLater();
+                delete promise;
+                return;
+            }
+        }
+
+        int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        response.statusCode = statusCode;
+        switch(statusCode) {
+        default: // successful operation
+            {
+                response.http_200 = QSharedPointer<SWGPet>::create();
+                serializer.fromJson(response.http_200.data(), doc.object());
+            }
+            break;
+        case 400: // Invalid ID supplied
+            {
+                response.http_400 = true;
+            }
+            break;
+        case 404: // Pet not found
+            {
+                response.http_404 = true;
+            }
+            break;
+        }
+
+        promise->resolve(response);
+
+        reply->deleteLater();
+        delete promise;
+    });
+
+    return *promise;
 }
 
-Promise<SWGApiResponse> SWGPetApi::uploadFile(qint64 pet_id, QString additional_metadata, SWGHttpRequestInputFileElement file) {
-    QString fullPath;
-    fullPath.append(config.host()).append(config.basePath()).append("/pet/{petId}/uploadImage");
+Promise<updatePetReply> SWGPetApi::updatePet(const SWGPet &body) {
+    QUrl url(m_config->url());
+    QString fullPath = url.path() + "/pet";
 
-    QString pet_idPathParam("{"); pet_idPathParam.append("petId").append("}");
-    fullPath.replace(pet_idPathParam, stringValue(pet_id));
+    url.setPath(fullPath);
+
+    QUrlQuery query(url);
+
+    // START authentication
+    // END authentication
+
+    url.setQuery(query);
+
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, QVariant::fromValue(true));
+
+    NetworkHelper helper;
+
+    JsonSerializer serializer;
+    QJsonDocument doc;
+    doc.setObject(serializer.toJson(body));
+    
+
+    // Set post content
+    helper.setData(doc.toJson());
 
 
-    HttpRequestWorker *worker = new HttpRequestWorker();
-    HttpRequestInput input(fullPath, "POST");
+    // START authentication
+    // END authentication
 
-    if (additional_metadata != nullptr) {
-        input.add_var("additionalMetadata", *additional_metadata);
-    }
-if (file != nullptr) {
-        input.add_file("file", (*file).local_filename, (*file).request_filename, (*file).mime_type);
-    }
+    m_config->prepareRequest(&request);
+
+    QNetworkReply *reply = helper.execute("PUT", request, m_config->networkAccessManager());
+
+    m_config->processReply(reply);
+
+    Promise<updatePetReply> *promise = new Promise<updatePetReply>;
+
+    connect(reply, &QNetworkReply::finished, [=](){
+        JsonSerializer serializer;
+        updatePetReply response;
+        response.httpResponse = reply;
+
+        // TODO: Error handling
+        if (reply->error() != QNetworkReply::NoError) {
+            promise->reject();
+
+            qDebug() << "HTTP error:" << reply->errorString() << reply->readAll();
+
+            reply->deleteLater();
+            delete promise;
+            return;
+        }
+
+        QByteArray data = reply->readAll();
+
+        QJsonDocument doc;
+        if (!data.isEmpty()) {
+            QJsonParseError error;
+            doc = QJsonDocument::fromJson(data, &error);
+
+            if (error.error != QJsonParseError::NoError) {
+                promise->reject();
+
+                qDebug() << "JSON parse error:" << error.errorString();
+
+                reply->deleteLater();
+                delete promise;
+                return;
+            }
+        }
+
+        int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        response.statusCode = statusCode;
+        switch(statusCode) {
+        case 400: // Invalid ID supplied
+            {
+                response.http_400 = true;
+            }
+            break;
+        case 404: // Pet not found
+            {
+                response.http_404 = true;
+            }
+            break;
+        case 405: // Validation exception
+            {
+                response.http_405 = true;
+            }
+            break;
+        }
+
+        promise->resolve(response);
+
+        reply->deleteLater();
+        delete promise;
+    });
+
+    return *promise;
+}
+
+Promise<updatePetWithFormReply> SWGPetApi::updatePetWithForm(const qint64 &pet_id, const QString &name, const QString &status) {
+    QUrl url(m_config->url());
+    QString fullPath = url.path() + "/pet/{petId}";
+
+    fullPath.replace("{petId}", QVariant::fromValue(pet_id).toString());
+    url.setPath(fullPath);
+
+    QUrlQuery query(url);
+
+    // START authentication
+    // END authentication
+
+    url.setQuery(query);
+
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, QVariant::fromValue(true));
+
+    NetworkHelper helper;
+    helper.addVar("name", QVariant::fromValue(name).toString());
+    helper.addVar("status", QVariant::fromValue(status).toString());
+
+    JsonSerializer serializer;
+    QJsonDocument doc;
 
 
+    // Set post content
+    helper.setData(doc.toJson());
 
 
-    connect(worker,
-            &HttpRequestWorker::on_execution_finished,
-            this,
-            &SWGPetApi::uploadFileCallback);
+    // START authentication
+    // END authentication
 
-    worker->execute(&input);
+    m_config->prepareRequest(&request);
+
+    QNetworkReply *reply = helper.execute("POST", request, m_config->networkAccessManager());
+
+    m_config->processReply(reply);
+
+    Promise<updatePetWithFormReply> *promise = new Promise<updatePetWithFormReply>;
+
+    connect(reply, &QNetworkReply::finished, [=](){
+        JsonSerializer serializer;
+        updatePetWithFormReply response;
+        response.httpResponse = reply;
+
+        // TODO: Error handling
+        if (reply->error() != QNetworkReply::NoError) {
+            promise->reject();
+
+            qDebug() << "HTTP error:" << reply->errorString() << reply->readAll();
+
+            reply->deleteLater();
+            delete promise;
+            return;
+        }
+
+        QByteArray data = reply->readAll();
+
+        QJsonDocument doc;
+        if (!data.isEmpty()) {
+            QJsonParseError error;
+            doc = QJsonDocument::fromJson(data, &error);
+
+            if (error.error != QJsonParseError::NoError) {
+                promise->reject();
+
+                qDebug() << "JSON parse error:" << error.errorString();
+
+                reply->deleteLater();
+                delete promise;
+                return;
+            }
+        }
+
+        int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        response.statusCode = statusCode;
+        switch(statusCode) {
+        case 405: // Invalid input
+            {
+                response.http_405 = true;
+            }
+            break;
+        }
+
+        promise->resolve(response);
+
+        reply->deleteLater();
+        delete promise;
+    });
+
+    return *promise;
+}
+
+Promise<uploadFileReply> SWGPetApi::uploadFile(const qint64 &pet_id, const QString &additional_metadata, const QHttpPart &file) {
+    QUrl url(m_config->url());
+    QString fullPath = url.path() + "/pet/{petId}/uploadImage";
+
+    fullPath.replace("{petId}", QVariant::fromValue(pet_id).toString());
+    url.setPath(fullPath);
+
+    QUrlQuery query(url);
+
+    // START authentication
+    // END authentication
+
+    url.setQuery(query);
+
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, QVariant::fromValue(true));
+
+    NetworkHelper helper;
+    helper.addVar("additionalMetadata", QVariant::fromValue(additional_metadata).toString());
+    helper.addFile("file", file);
+
+    JsonSerializer serializer;
+    QJsonDocument doc;
+
+
+    // Set post content
+    helper.setData(doc.toJson());
+
+
+    // START authentication
+    // END authentication
+
+    m_config->prepareRequest(&request);
+
+    QNetworkReply *reply = helper.execute("POST", request, m_config->networkAccessManager());
+
+    m_config->processReply(reply);
+
+    Promise<uploadFileReply> *promise = new Promise<uploadFileReply>;
+
+    connect(reply, &QNetworkReply::finished, [=](){
+        JsonSerializer serializer;
+        uploadFileReply response;
+        response.httpResponse = reply;
+
+        // TODO: Error handling
+        if (reply->error() != QNetworkReply::NoError) {
+            promise->reject();
+
+            qDebug() << "HTTP error:" << reply->errorString() << reply->readAll();
+
+            reply->deleteLater();
+            delete promise;
+            return;
+        }
+
+        QByteArray data = reply->readAll();
+
+        QJsonDocument doc;
+        if (!data.isEmpty()) {
+            QJsonParseError error;
+            doc = QJsonDocument::fromJson(data, &error);
+
+            if (error.error != QJsonParseError::NoError) {
+                promise->reject();
+
+                qDebug() << "JSON parse error:" << error.errorString();
+
+                reply->deleteLater();
+                delete promise;
+                return;
+            }
+        }
+
+        int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        response.statusCode = statusCode;
+        switch(statusCode) {
+        default: // successful operation
+            {
+                response.http_200 = QSharedPointer<SWGApiResponse>::create();
+                serializer.fromJson(response.http_200.data(), doc.object());
+            }
+            break;
+        }
+
+        promise->resolve(response);
+
+        reply->deleteLater();
+        delete promise;
+    });
+
+    return *promise;
 }
 
 } /* namespace Swagger */

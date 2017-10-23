@@ -30,10 +30,16 @@ namespace Swagger {
 class SWGApiResponseData;
 
 class SWGApiResponse {
+    Q_GADGET
+    Q_PROPERTY(qint32 code READ code)
+    Q_PROPERTY(QString type READ type)
+    Q_PROPERTY(QString message READ message)
 public:
     SWGApiResponse();
     SWGApiResponse(const SWGApiResponse &other);
     ~SWGApiResponse();
+
+    SWGApiResponse &operator =(const SWGApiResponse &other);
 
     qint32 code() const;
     void setCode(const qint32 &code);
@@ -51,5 +57,6 @@ private:
 }
 
 Q_DECLARE_TYPEINFO(Swagger::SWGApiResponse, Q_MOVABLE_TYPE);
+Q_DECLARE_METATYPE(Swagger::SWGApiResponse)
 
 #endif /* SWGApiResponse_H_ */

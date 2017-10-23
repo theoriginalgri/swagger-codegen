@@ -10,31 +10,43 @@
  * Do not edit the class manually.
  */
 
-#ifndef _SWG_OBJECT_H_
-#define _SWG_OBJECT_H_
+/*
+* SWGCategory.h
+*
+* A category for a pet
+*/
 
-#include <QJsonValue>
+#ifndef SWGCategory_PRIVATE_H_
+#define SWGCategory_PRIVATE_H_
+
+
+#include <QString>
+#include <QSharedData>
+
 
 namespace Swagger {
 
-class SWGObject {
-  public:
-    virtual QJsonObject* asJsonObject() {
-      return nullptr;
+class SWGCategoryData : public QSharedData {
+public:
+    SWGCategoryData()
+    : QSharedData(), id(0L)
+    {
     }
-    virtual ~SWGObject() {}
-    virtual SWGObject* fromJson(QString &jsonString) {
-        Q_UNUSED(jsonString);
-        return nullptr;
+
+    SWGCategoryData(const SWGCategoryData &other)
+    : QSharedData(other)
+    , id(other.id)
+    , name(other.name)
+    {
     }
-    virtual void fromJsonObject(QJsonObject &json) {
-        Q_UNUSED(json);
+
+    ~SWGCategoryData() {
     }
-    virtual QString asJson() {
-        return QString("");
-    }
+
+    qint64 id;
+    QString name;
 };
 
-}
+} /* namespace Swagger */
 
-#endif /* _SWG_OBJECT_H_ */
+#endif /* SWGCategory_PRIVATE_H_ */

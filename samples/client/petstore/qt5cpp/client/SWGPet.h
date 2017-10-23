@@ -33,10 +33,19 @@ namespace Swagger {
 class SWGPetData;
 
 class SWGPet {
+    Q_GADGET
+    Q_PROPERTY(qint64 id READ id)
+    Q_PROPERTY(SWGCategory category READ category)
+    Q_PROPERTY(QString name READ name)
+    Q_PROPERTY(QList<QString> photo_urls READ photoUrls)
+    Q_PROPERTY(QList<SWGTag> tags READ tags)
+    Q_PROPERTY(QString status READ status)
 public:
     SWGPet();
     SWGPet(const SWGPet &other);
     ~SWGPet();
+
+    SWGPet &operator =(const SWGPet &other);
 
     qint64 id() const;
     void setId(const qint64 &id);
@@ -63,5 +72,6 @@ private:
 }
 
 Q_DECLARE_TYPEINFO(Swagger::SWGPet, Q_MOVABLE_TYPE);
+Q_DECLARE_METATYPE(Swagger::SWGPet)
 
 #endif /* SWGPet_H_ */

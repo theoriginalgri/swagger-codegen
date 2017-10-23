@@ -13,16 +13,87 @@
 #ifndef _SWG_SWGPetApi_H_
 #define _SWG_SWGPetApi_H_
 
-#include "SWGHttpRequest.h"
-
+#include <QHttpPart>
 #include <QString>
 #include "SWGApiResponse.h"
-#include "SWGHttpRequest.h"
 #include "SWGPet.h"
+#include "Promise.h"
 
 #include <QObject>
+#include <QSharedPointer>
 
 namespace Swagger {
+
+struct addPetReply
+{
+    QNetworkReply *httpResponse = nullptr;
+    int statusCode = 0;
+
+    bool http_405 = false; // Invalid input
+};
+
+struct deletePetReply
+{
+    QNetworkReply *httpResponse = nullptr;
+    int statusCode = 0;
+
+    bool http_400 = false; // Invalid pet value
+};
+
+struct findPetsByStatusReply
+{
+    QNetworkReply *httpResponse = nullptr;
+    int statusCode = 0;
+
+    QSharedPointer<QList<SWGPet>> http_200; // successful operation
+    bool http_400 = false; // Invalid status value
+};
+
+struct findPetsByTagsReply
+{
+    QNetworkReply *httpResponse = nullptr;
+    int statusCode = 0;
+
+    QSharedPointer<QList<SWGPet>> http_200; // successful operation
+    bool http_400 = false; // Invalid tag value
+};
+
+struct getPetByIdReply
+{
+    QNetworkReply *httpResponse = nullptr;
+    int statusCode = 0;
+
+    QSharedPointer<SWGPet> http_200; // successful operation
+    bool http_400 = false; // Invalid ID supplied
+    bool http_404 = false; // Pet not found
+};
+
+struct updatePetReply
+{
+    QNetworkReply *httpResponse = nullptr;
+    int statusCode = 0;
+
+    bool http_400 = false; // Invalid ID supplied
+    bool http_404 = false; // Pet not found
+    bool http_405 = false; // Validation exception
+};
+
+struct updatePetWithFormReply
+{
+    QNetworkReply *httpResponse = nullptr;
+    int statusCode = 0;
+
+    bool http_405 = false; // Invalid input
+};
+
+struct uploadFileReply
+{
+    QNetworkReply *httpResponse = nullptr;
+    int statusCode = 0;
+
+    QSharedPointer<SWGApiResponse> http_200; // successful operation
+};
+
 
 class SWGPetApi : public QObject
 {
@@ -30,24 +101,26 @@ class SWGPetApi : public QObject
 
 public:
     explicit SWGPetApi(QObject *parent = Q_NULLPTR);
-    SWGPetApi(const SwaggerConfig &config, QObject *parent = Q_NULLPTR);
+    SWGPetApi(SwaggerConfig *config, QObject *parent = Q_NULLPTR);
     ~SWGPetApi();
 
-    void setConfig(const SwaggerConfig &config);
-    SwaggerConfig config() const;
+    void setConfig(SwaggerConfig *config);
+    SwaggerConfig *config() const;
 
-    Promise<> addPet(const SWGPet &body);
-    Promise<> deletePet(const qint64 &pet_id, const QString &api_key);
-    Promise<QList<SWGPet>> findPetsByStatus(const QList<QString> &status);
-    Promise<QList<SWGPet>> findPetsByTags(const QList<QString> &tags);
-    Promise<SWGPet> getPetById(const qint64 &pet_id);
-    Promise<> updatePet(const SWGPet &body);
-    Promise<> updatePetWithForm(const qint64 &pet_id, const QString &name, const QString &status);
-    Promise<SWGApiResponse> uploadFile(const qint64 &pet_id, const QString &additional_metadata, const SWGHttpRequestInputFileElement &file);
+    Promise<addPetReply> addPet(const SWGPet &body);
+    Promise<deletePetReply> deletePet(const qint64 &pet_id, const QString &api_key);
+    Promise<findPetsByStatusReply> findPetsByStatus(const QList<QString> &status);
+    Promise<findPetsByTagsReply> findPetsByTags(const QList<QString> &tags);
+    Promise<getPetByIdReply> getPetById(const qint64 &pet_id);
+    Promise<updatePetReply> updatePet(const SWGPet &body);
+    Promise<updatePetWithFormReply> updatePetWithForm(const qint64 &pet_id, const QString &name, const QString &status);
+    Promise<uploadFileReply> uploadFile(const qint64 &pet_id, const QString &additional_metadata, const QHttpPart &file);
     
 
 private:
-    SwaggerConfig config;
+    SwaggerConfig *m_config;
 };
-}
+
+} // namespace Swagger
+
 #endif

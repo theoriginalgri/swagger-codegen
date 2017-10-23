@@ -13,15 +13,85 @@
 #ifndef _SWG_SWGUserApi_H_
 #define _SWG_SWGUserApi_H_
 
-#include "SWGHttpRequest.h"
-
 #include <QList>
 #include <QString>
 #include "SWGUser.h"
+#include "Promise.h"
 
 #include <QObject>
+#include <QSharedPointer>
 
 namespace Swagger {
+
+struct createUserReply
+{
+    QNetworkReply *httpResponse = nullptr;
+    int statusCode = 0;
+
+    bool http_0 = false; // successful operation
+};
+
+struct createUsersWithArrayInputReply
+{
+    QNetworkReply *httpResponse = nullptr;
+    int statusCode = 0;
+
+    bool http_0 = false; // successful operation
+};
+
+struct createUsersWithListInputReply
+{
+    QNetworkReply *httpResponse = nullptr;
+    int statusCode = 0;
+
+    bool http_0 = false; // successful operation
+};
+
+struct deleteUserReply
+{
+    QNetworkReply *httpResponse = nullptr;
+    int statusCode = 0;
+
+    bool http_400 = false; // Invalid username supplied
+    bool http_404 = false; // User not found
+};
+
+struct getUserByNameReply
+{
+    QNetworkReply *httpResponse = nullptr;
+    int statusCode = 0;
+
+    QSharedPointer<SWGUser> http_200; // successful operation
+    bool http_400 = false; // Invalid username supplied
+    bool http_404 = false; // User not found
+};
+
+struct loginUserReply
+{
+    QNetworkReply *httpResponse = nullptr;
+    int statusCode = 0;
+
+    QSharedPointer<QString> http_200; // successful operation
+    bool http_400 = false; // Invalid username/password supplied
+};
+
+struct logoutUserReply
+{
+    QNetworkReply *httpResponse = nullptr;
+    int statusCode = 0;
+
+    bool http_0 = false; // successful operation
+};
+
+struct updateUserReply
+{
+    QNetworkReply *httpResponse = nullptr;
+    int statusCode = 0;
+
+    bool http_400 = false; // Invalid user supplied
+    bool http_404 = false; // User not found
+};
+
 
 class SWGUserApi : public QObject
 {
@@ -29,24 +99,26 @@ class SWGUserApi : public QObject
 
 public:
     explicit SWGUserApi(QObject *parent = Q_NULLPTR);
-    SWGUserApi(const SwaggerConfig &config, QObject *parent = Q_NULLPTR);
+    SWGUserApi(SwaggerConfig *config, QObject *parent = Q_NULLPTR);
     ~SWGUserApi();
 
-    void setConfig(const SwaggerConfig &config);
-    SwaggerConfig config() const;
+    void setConfig(SwaggerConfig *config);
+    SwaggerConfig *config() const;
 
-    Promise<> createUser(const SWGUser &body);
-    Promise<> createUsersWithArrayInput(const QList<SWGUser> &body);
-    Promise<> createUsersWithListInput(const QList<SWGUser> &body);
-    Promise<> deleteUser(const QString &username);
-    Promise<SWGUser> getUserByName(const QString &username);
-    Promise<QString> loginUser(const QString &username, const QString &password);
-    Promise<> logoutUser();
-    Promise<> updateUser(const QString &username, const SWGUser &body);
+    Promise<createUserReply> createUser(const SWGUser &body);
+    Promise<createUsersWithArrayInputReply> createUsersWithArrayInput(const QList<SWGUser> &body);
+    Promise<createUsersWithListInputReply> createUsersWithListInput(const QList<SWGUser> &body);
+    Promise<deleteUserReply> deleteUser(const QString &username);
+    Promise<getUserByNameReply> getUserByName(const QString &username);
+    Promise<loginUserReply> loginUser(const QString &username, const QString &password);
+    Promise<logoutUserReply> logoutUser();
+    Promise<updateUserReply> updateUser(const QString &username, const SWGUser &body);
     
 
 private:
-    SwaggerConfig config;
+    SwaggerConfig *m_config;
 };
-}
+
+} // namespace Swagger
+
 #endif

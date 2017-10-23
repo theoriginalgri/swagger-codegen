@@ -30,6 +30,12 @@ SWGApiResponse::~SWGApiResponse()
 {
 }
 
+SWGApiResponse &SWGApiResponse::operator =(const SWGApiResponse &other)
+{
+    d = other.d;
+    return *this;
+}
+
 qint32 SWGApiResponse::code() const
 {
     return d->code;

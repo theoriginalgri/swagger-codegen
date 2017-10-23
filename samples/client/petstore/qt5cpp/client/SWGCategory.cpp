@@ -30,6 +30,12 @@ SWGCategory::~SWGCategory()
 {
 }
 
+SWGCategory &SWGCategory::operator =(const SWGCategory &other)
+{
+    d = other.d;
+    return *this;
+}
+
 qint64 SWGCategory::id() const
 {
     return d->id;
