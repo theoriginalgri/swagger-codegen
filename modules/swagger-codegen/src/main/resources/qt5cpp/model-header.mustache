@@ -33,6 +33,8 @@ public:
 
     {{classname}} &operator =(const {{classname}} &other);
 
+    bool operator ==(const {{classname}} &cmp) const;
+
     {{#vars}}
     {{{datatype}}} {{getter}}() const;
     void {{setter}}(const {{{datatype}}} &{{getter}});
