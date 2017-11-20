@@ -52,6 +52,16 @@ void {{classname}}::{{setter}}(const {{{datatype}}} &{{getter}})
 }
 
 {{/vars}}
+QDebug operator <<(QDebug stream, const {{classname}} &obj)
+{
+    QDebugStateSaver saver(stream);
+    stream.nospace()
+        {{#vars}}
+        << "{{getter}}: " << obj.{{getter}}(){{#hasMore}} << ", "{{/hasMore}}{{^hasMore}};{{/hasMore}}
+        {{/vars}}
+
+    return stream;
+}
 
 {{#cppNamespaceDeclarations}}
 } // namespace {{this}}

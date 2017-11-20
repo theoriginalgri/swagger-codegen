@@ -12,6 +12,7 @@
 {{/model}}{{/models}}
 {{#imports}}{{{import}}}
 {{/imports}}
+#include <QDebug>
 #include <QSharedDataPointer>
 
 {{#models}}{{#model}}
@@ -43,6 +44,8 @@ public:
 private:
     QSharedDataPointer<{{classname}}Data> d;
 };
+
+QDebug operator <<(QDebug stream, const {{classname}} &obj);
 
 {{#cppNamespaceDeclarations}}
 } // namespace {{this}}
