@@ -3,6 +3,8 @@
 #include "{{classname}}.h"
 #include "{{classname}}_p.h"
 
+#include <QDataStream>
+
 {{#cppNamespaceDeclarations}}
 namespace {{this}} {
 {{/cppNamespaceDeclarations}}
@@ -52,6 +54,27 @@ void {{classname}}::{{setter}}(const {{{datatype}}} &{{getter}})
 }
 
 {{/vars}}
+QDataStream &operator <<(QDataStream &out, const {{classname}} &obj)
+{
+    out{{#vars}} << obj.{{getter}}(){{/vars}};
+    
+    return out;
+}
+
+QDataStream &operator >>(QDataStream &in, {{classname}} &obj)
+{
+    {{#vars}}
+    {{{datatype}}} {{getter}};
+    in >> {{getter}};
+    {{/vars}}
+    
+    {{#vars}}
+    obj.{{setter}}({{getter}});
+    {{/vars}}
+    
+    return in;
+}
+
 QDebug operator <<(QDebug stream, const {{classname}} &obj)
 {
     QDebugStateSaver saver(stream);

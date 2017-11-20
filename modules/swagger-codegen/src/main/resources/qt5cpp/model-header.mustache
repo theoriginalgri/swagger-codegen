@@ -45,6 +45,8 @@ private:
     QSharedDataPointer<{{classname}}Data> d;
 };
 
+QDataStream &operator <<(QDataStream &out, const {{classname}} &obj);
+QDataStream &operator >>(QDataStream &in, {{classname}} &obj);
 QDebug operator <<(QDebug stream, const {{classname}} &obj);
 
 {{#cppNamespaceDeclarations}}
