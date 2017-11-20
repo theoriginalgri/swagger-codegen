@@ -36,6 +36,22 @@ SWGPet &SWGPet::operator =(const SWGPet &other)
     return *this;
 }
 
+bool SWGPet::operator ==(const SWGPet &cmp) const
+{
+    if (d == cmp.d) {
+        return true;
+    }
+
+    return (
+        d->id == cmp.d->id &&
+        d->category == cmp.d->category &&
+        d->name == cmp.d->name &&
+        d->photoUrls == cmp.d->photoUrls &&
+        d->tags == cmp.d->tags &&
+        d->status == cmp.d->status
+    );
+}
+
 qint64 SWGPet::id() const
 {
     return d->id;
@@ -68,12 +84,12 @@ void SWGPet::setName(const QString &name)
 
 QList<QString> SWGPet::photoUrls() const
 {
-    return d->photo_urls;
+    return d->photoUrls;
 }
 
-void SWGPet::setPhotoUrls(const QList<QString> &photo_urls)
+void SWGPet::setPhotoUrls(const QList<QString> &photoUrls)
 {
-    d->photo_urls = photo_urls;
+    d->photoUrls = photoUrls;
 }
 
 QList<SWGTag> SWGPet::tags() const
@@ -96,6 +112,19 @@ void SWGPet::setStatus(const QString &status)
     d->status = status;
 }
 
+QDebug operator <<(QDebug stream, const SWGPet &obj)
+{
+    QDebugStateSaver saver(stream);
+    stream.nospace()
+        << "id: " << obj.id() << ", "
+        << "category: " << obj.category() << ", "
+        << "name: " << obj.name() << ", "
+        << "photoUrls: " << obj.photoUrls() << ", "
+        << "tags: " << obj.tags() << ", "
+        << "status: " << obj.status();
 
-} /* namespace Swagger */
+    return stream;
+}
+
+} // namespace Swagger
 

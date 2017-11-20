@@ -36,6 +36,22 @@ SWGOrder &SWGOrder::operator =(const SWGOrder &other)
     return *this;
 }
 
+bool SWGOrder::operator ==(const SWGOrder &cmp) const
+{
+    if (d == cmp.d) {
+        return true;
+    }
+
+    return (
+        d->id == cmp.d->id &&
+        d->petId == cmp.d->petId &&
+        d->quantity == cmp.d->quantity &&
+        d->shipDate == cmp.d->shipDate &&
+        d->status == cmp.d->status &&
+        d->complete == cmp.d->complete
+    );
+}
+
 qint64 SWGOrder::id() const
 {
     return d->id;
@@ -48,12 +64,12 @@ void SWGOrder::setId(const qint64 &id)
 
 qint64 SWGOrder::petId() const
 {
-    return d->pet_id;
+    return d->petId;
 }
 
-void SWGOrder::setPetId(const qint64 &pet_id)
+void SWGOrder::setPetId(const qint64 &petId)
 {
-    d->pet_id = pet_id;
+    d->petId = petId;
 }
 
 qint32 SWGOrder::quantity() const
@@ -68,12 +84,12 @@ void SWGOrder::setQuantity(const qint32 &quantity)
 
 QDateTime SWGOrder::shipDate() const
 {
-    return d->ship_date;
+    return d->shipDate;
 }
 
-void SWGOrder::setShipDate(const QDateTime &ship_date)
+void SWGOrder::setShipDate(const QDateTime &shipDate)
 {
-    d->ship_date = ship_date;
+    d->shipDate = shipDate;
 }
 
 QString SWGOrder::status() const
@@ -96,6 +112,19 @@ void SWGOrder::setComplete(const bool &complete)
     d->complete = complete;
 }
 
+QDebug operator <<(QDebug stream, const SWGOrder &obj)
+{
+    QDebugStateSaver saver(stream);
+    stream.nospace()
+        << "id: " << obj.id() << ", "
+        << "petId: " << obj.petId() << ", "
+        << "quantity: " << obj.quantity() << ", "
+        << "shipDate: " << obj.shipDate() << ", "
+        << "status: " << obj.status() << ", "
+        << "complete: " << obj.complete();
 
-} /* namespace Swagger */
+    return stream;
+}
+
+} // namespace Swagger
 

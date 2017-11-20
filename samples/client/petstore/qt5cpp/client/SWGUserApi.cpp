@@ -815,4 +815,5 @@ Promise<updateUserReply> SWGUserApi::updateUser(const QString &username, const S
     return *promise;
 }
 
-} /* namespace Swagger */
+
+} // namespace Swagger

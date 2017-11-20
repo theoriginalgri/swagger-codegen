@@ -36,6 +36,19 @@ SWGApiResponse &SWGApiResponse::operator =(const SWGApiResponse &other)
     return *this;
 }
 
+bool SWGApiResponse::operator ==(const SWGApiResponse &cmp) const
+{
+    if (d == cmp.d) {
+        return true;
+    }
+
+    return (
+        d->code == cmp.d->code &&
+        d->type == cmp.d->type &&
+        d->message == cmp.d->message
+    );
+}
+
 qint32 SWGApiResponse::code() const
 {
     return d->code;
@@ -66,6 +79,16 @@ void SWGApiResponse::setMessage(const QString &message)
     d->message = message;
 }
 
+QDebug operator <<(QDebug stream, const SWGApiResponse &obj)
+{
+    QDebugStateSaver saver(stream);
+    stream.nospace()
+        << "code: " << obj.code() << ", "
+        << "type: " << obj.type() << ", "
+        << "message: " << obj.message();
 
-} /* namespace Swagger */
+    return stream;
+}
+
+} // namespace Swagger
 

@@ -276,4 +276,4 @@ bool JsonSerializer::fromJson(bool *dst, const QJsonValue &value)
     return true;
 }
 
-}
+} // namespace Swagger

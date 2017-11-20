@@ -827,4 +827,5 @@ Promise<uploadFileReply> SWGPetApi::uploadFile(const qint64 &pet_id, const QStri
     return *promise;
 }
 
-} /* namespace Swagger */
+
+} // namespace Swagger

@@ -22,6 +22,7 @@
 #include "SwaggerConfig.h"
 
 #include <QString>
+#include <QDebug>
 #include <QSharedDataPointer>
 
 
@@ -40,6 +41,8 @@ public:
 
     SWGTag &operator =(const SWGTag &other);
 
+    bool operator ==(const SWGTag &cmp) const;
+
     qint64 id() const;
     void setId(const qint64 &id);
 
@@ -50,7 +53,9 @@ private:
     QSharedDataPointer<SWGTagData> d;
 };
 
-}
+QDebug operator <<(QDebug stream, const SWGTag &obj);
+
+} // namespace Swagger
 
 Q_DECLARE_TYPEINFO(Swagger::SWGTag, Q_MOVABLE_TYPE);
 Q_DECLARE_METATYPE(Swagger::SWGTag)

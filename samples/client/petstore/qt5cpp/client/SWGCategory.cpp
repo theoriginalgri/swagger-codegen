@@ -36,6 +36,18 @@ SWGCategory &SWGCategory::operator =(const SWGCategory &other)
     return *this;
 }
 
+bool SWGCategory::operator ==(const SWGCategory &cmp) const
+{
+    if (d == cmp.d) {
+        return true;
+    }
+
+    return (
+        d->id == cmp.d->id &&
+        d->name == cmp.d->name
+    );
+}
+
 qint64 SWGCategory::id() const
 {
     return d->id;
@@ -56,6 +68,15 @@ void SWGCategory::setName(const QString &name)
     d->name = name;
 }
 
+QDebug operator <<(QDebug stream, const SWGCategory &obj)
+{
+    QDebugStateSaver saver(stream);
+    stream.nospace()
+        << "id: " << obj.id() << ", "
+        << "name: " << obj.name();
 
-} /* namespace Swagger */
+    return stream;
+}
+
+} // namespace Swagger
 

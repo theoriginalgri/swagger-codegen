@@ -36,6 +36,18 @@ SWGTag &SWGTag::operator =(const SWGTag &other)
     return *this;
 }
 
+bool SWGTag::operator ==(const SWGTag &cmp) const
+{
+    if (d == cmp.d) {
+        return true;
+    }
+
+    return (
+        d->id == cmp.d->id &&
+        d->name == cmp.d->name
+    );
+}
+
 qint64 SWGTag::id() const
 {
     return d->id;
@@ -56,6 +68,15 @@ void SWGTag::setName(const QString &name)
     d->name = name;
 }
 
+QDebug operator <<(QDebug stream, const SWGTag &obj)
+{
+    QDebugStateSaver saver(stream);
+    stream.nospace()
+        << "id: " << obj.id() << ", "
+        << "name: " << obj.name();
 
-} /* namespace Swagger */
+    return stream;
+}
+
+} // namespace Swagger
 

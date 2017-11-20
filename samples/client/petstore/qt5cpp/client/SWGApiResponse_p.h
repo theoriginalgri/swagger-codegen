@@ -49,6 +49,6 @@ public:
     QString message;
 };
 
-} /* namespace Swagger */
+} // namespace Swagger
 
 #endif /* SWGApiResponse_PRIVATE_H_ */

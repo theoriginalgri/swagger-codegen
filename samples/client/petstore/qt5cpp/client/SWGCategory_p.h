@@ -47,6 +47,6 @@ public:
     QString name;
 };
 
-} /* namespace Swagger */
+} // namespace Swagger
 
 #endif /* SWGCategory_PRIVATE_H_ */

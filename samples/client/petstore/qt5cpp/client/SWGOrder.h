@@ -23,6 +23,7 @@
 
 #include <QDateTime>
 #include <QString>
+#include <QDebug>
 #include <QSharedDataPointer>
 
 
@@ -33,9 +34,9 @@ class SWGOrderData;
 class SWGOrder {
     Q_GADGET
     Q_PROPERTY(qint64 id READ id)
-    Q_PROPERTY(qint64 pet_id READ petId)
+    Q_PROPERTY(qint64 petId READ petId)
     Q_PROPERTY(qint32 quantity READ quantity)
-    Q_PROPERTY(QDateTime ship_date READ shipDate)
+    Q_PROPERTY(QDateTime shipDate READ shipDate)
     Q_PROPERTY(QString status READ status)
     Q_PROPERTY(bool complete READ complete)
 public:
@@ -45,17 +46,19 @@ public:
 
     SWGOrder &operator =(const SWGOrder &other);
 
+    bool operator ==(const SWGOrder &cmp) const;
+
     qint64 id() const;
     void setId(const qint64 &id);
 
     qint64 petId() const;
-    void setPetId(const qint64 &pet_id);
+    void setPetId(const qint64 &petId);
 
     qint32 quantity() const;
     void setQuantity(const qint32 &quantity);
 
     QDateTime shipDate() const;
-    void setShipDate(const QDateTime &ship_date);
+    void setShipDate(const QDateTime &shipDate);
 
     QString status() const;
     void setStatus(const QString &status);
@@ -67,7 +70,9 @@ private:
     QSharedDataPointer<SWGOrderData> d;
 };
 
-}
+QDebug operator <<(QDebug stream, const SWGOrder &obj);
+
+} // namespace Swagger
 
 Q_DECLARE_TYPEINFO(Swagger::SWGOrder, Q_MOVABLE_TYPE);
 Q_DECLARE_METATYPE(Swagger::SWGOrder)

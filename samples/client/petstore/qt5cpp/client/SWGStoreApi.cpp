@@ -442,4 +442,5 @@ Promise<placeOrderReply> SWGStoreApi::placeOrder(const SWGOrder &body) {
     return *promise;
 }
 
-} /* namespace Swagger */
+
+} // namespace Swagger

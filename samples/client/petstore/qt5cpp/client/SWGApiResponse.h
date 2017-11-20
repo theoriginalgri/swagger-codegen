@@ -22,6 +22,7 @@
 #include "SwaggerConfig.h"
 
 #include <QString>
+#include <QDebug>
 #include <QSharedDataPointer>
 
 
@@ -41,6 +42,8 @@ public:
 
     SWGApiResponse &operator =(const SWGApiResponse &other);
 
+    bool operator ==(const SWGApiResponse &cmp) const;
+
     qint32 code() const;
     void setCode(const qint32 &code);
 
@@ -54,7 +57,9 @@ private:
     QSharedDataPointer<SWGApiResponseData> d;
 };
 
-}
+QDebug operator <<(QDebug stream, const SWGApiResponse &obj);
+
+} // namespace Swagger
 
 Q_DECLARE_TYPEINFO(Swagger::SWGApiResponse, Q_MOVABLE_TYPE);
 Q_DECLARE_METATYPE(Swagger::SWGApiResponse)

@@ -29,7 +29,7 @@ namespace Swagger {
 class SWGUserData : public QSharedData {
 public:
     SWGUserData()
-    : QSharedData(), id(0L), user_status(0)
+    : QSharedData(), id(0L), userStatus(0)
     {
     }
 
@@ -37,12 +37,12 @@ public:
     : QSharedData(other)
     , id(other.id)
     , username(other.username)
-    , first_name(other.first_name)
-    , last_name(other.last_name)
+    , firstName(other.firstName)
+    , lastName(other.lastName)
     , email(other.email)
     , password(other.password)
     , phone(other.phone)
-    , user_status(other.user_status)
+    , userStatus(other.userStatus)
     {
     }
 
@@ -51,14 +51,14 @@ public:
 
     qint64 id;
     QString username;
-    QString first_name;
-    QString last_name;
+    QString firstName;
+    QString lastName;
     QString email;
     QString password;
     QString phone;
-    qint32 user_status;
+    qint32 userStatus;
 };
 
-} /* namespace Swagger */
+} // namespace Swagger
 
 #endif /* SWGUser_PRIVATE_H_ */

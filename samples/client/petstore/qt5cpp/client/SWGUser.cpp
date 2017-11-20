@@ -36,6 +36,24 @@ SWGUser &SWGUser::operator =(const SWGUser &other)
     return *this;
 }
 
+bool SWGUser::operator ==(const SWGUser &cmp) const
+{
+    if (d == cmp.d) {
+        return true;
+    }
+
+    return (
+        d->id == cmp.d->id &&
+        d->username == cmp.d->username &&
+        d->firstName == cmp.d->firstName &&
+        d->lastName == cmp.d->lastName &&
+        d->email == cmp.d->email &&
+        d->password == cmp.d->password &&
+        d->phone == cmp.d->phone &&
+        d->userStatus == cmp.d->userStatus
+    );
+}
+
 qint64 SWGUser::id() const
 {
     return d->id;
@@ -58,22 +76,22 @@ void SWGUser::setUsername(const QString &username)
 
 QString SWGUser::firstName() const
 {
-    return d->first_name;
+    return d->firstName;
 }
 
-void SWGUser::setFirstName(const QString &first_name)
+void SWGUser::setFirstName(const QString &firstName)
 {
-    d->first_name = first_name;
+    d->firstName = firstName;
 }
 
 QString SWGUser::lastName() const
 {
-    return d->last_name;
+    return d->lastName;
 }
 
-void SWGUser::setLastName(const QString &last_name)
+void SWGUser::setLastName(const QString &lastName)
 {
-    d->last_name = last_name;
+    d->lastName = lastName;
 }
 
 QString SWGUser::email() const
@@ -108,14 +126,29 @@ void SWGUser::setPhone(const QString &phone)
 
 qint32 SWGUser::userStatus() const
 {
-    return d->user_status;
+    return d->userStatus;
 }
 
-void SWGUser::setUserStatus(const qint32 &user_status)
+void SWGUser::setUserStatus(const qint32 &userStatus)
 {
-    d->user_status = user_status;
+    d->userStatus = userStatus;
 }
 
+QDebug operator <<(QDebug stream, const SWGUser &obj)
+{
+    QDebugStateSaver saver(stream);
+    stream.nospace()
+        << "id: " << obj.id() << ", "
+        << "username: " << obj.username() << ", "
+        << "firstName: " << obj.firstName() << ", "
+        << "lastName: " << obj.lastName() << ", "
+        << "email: " << obj.email() << ", "
+        << "password: " << obj.password() << ", "
+        << "phone: " << obj.phone() << ", "
+        << "userStatus: " << obj.userStatus();
 
-} /* namespace Swagger */
+    return stream;
+}
+
+} // namespace Swagger
 

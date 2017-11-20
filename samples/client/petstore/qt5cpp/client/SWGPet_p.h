@@ -41,7 +41,7 @@ public:
     , id(other.id)
     , category(other.category)
     , name(other.name)
-    , photo_urls(other.photo_urls)
+    , photoUrls(other.photoUrls)
     , tags(other.tags)
     , status(other.status)
     {
@@ -53,11 +53,11 @@ public:
     qint64 id;
     SWGCategory category;
     QString name;
-    QList<QString> photo_urls;
+    QList<QString> photoUrls;
     QList<SWGTag> tags;
     QString status;
 };
 
-} /* namespace Swagger */
+} // namespace Swagger
 
 #endif /* SWGPet_PRIVATE_H_ */

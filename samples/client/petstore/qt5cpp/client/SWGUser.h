@@ -22,6 +22,7 @@
 #include "SwaggerConfig.h"
 
 #include <QString>
+#include <QDebug>
 #include <QSharedDataPointer>
 
 
@@ -33,18 +34,20 @@ class SWGUser {
     Q_GADGET
     Q_PROPERTY(qint64 id READ id)
     Q_PROPERTY(QString username READ username)
-    Q_PROPERTY(QString first_name READ firstName)
-    Q_PROPERTY(QString last_name READ lastName)
+    Q_PROPERTY(QString firstName READ firstName)
+    Q_PROPERTY(QString lastName READ lastName)
     Q_PROPERTY(QString email READ email)
     Q_PROPERTY(QString password READ password)
     Q_PROPERTY(QString phone READ phone)
-    Q_PROPERTY(qint32 user_status READ userStatus)
+    Q_PROPERTY(qint32 userStatus READ userStatus)
 public:
     SWGUser();
     SWGUser(const SWGUser &other);
     ~SWGUser();
 
     SWGUser &operator =(const SWGUser &other);
+
+    bool operator ==(const SWGUser &cmp) const;
 
     qint64 id() const;
     void setId(const qint64 &id);
@@ -53,10 +56,10 @@ public:
     void setUsername(const QString &username);
 
     QString firstName() const;
-    void setFirstName(const QString &first_name);
+    void setFirstName(const QString &firstName);
 
     QString lastName() const;
-    void setLastName(const QString &last_name);
+    void setLastName(const QString &lastName);
 
     QString email() const;
     void setEmail(const QString &email);
@@ -68,13 +71,15 @@ public:
     void setPhone(const QString &phone);
 
     qint32 userStatus() const;
-    void setUserStatus(const qint32 &user_status);
+    void setUserStatus(const qint32 &userStatus);
 
 private:
     QSharedDataPointer<SWGUserData> d;
 };
 
-}
+QDebug operator <<(QDebug stream, const SWGUser &obj);
+
+} // namespace Swagger
 
 Q_DECLARE_TYPEINFO(Swagger::SWGUser, Q_MOVABLE_TYPE);
 Q_DECLARE_METATYPE(Swagger::SWGUser)

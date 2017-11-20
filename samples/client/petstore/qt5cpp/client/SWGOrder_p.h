@@ -30,16 +30,16 @@ namespace Swagger {
 class SWGOrderData : public QSharedData {
 public:
     SWGOrderData()
-    : QSharedData(), id(0L), pet_id(0L), quantity(0), complete(false)
+    : QSharedData(), id(0L), petId(0L), quantity(0), complete(false)
     {
     }
 
     SWGOrderData(const SWGOrderData &other)
     : QSharedData(other)
     , id(other.id)
-    , pet_id(other.pet_id)
+    , petId(other.petId)
     , quantity(other.quantity)
-    , ship_date(other.ship_date)
+    , shipDate(other.shipDate)
     , status(other.status)
     , complete(other.complete)
     {
@@ -49,13 +49,13 @@ public:
     }
 
     qint64 id;
-    qint64 pet_id;
+    qint64 petId;
     qint32 quantity;
-    QDateTime ship_date;
+    QDateTime shipDate;
     QString status;
     bool complete;
 };
 
-} /* namespace Swagger */
+} // namespace Swagger
 
 #endif /* SWGOrder_PRIVATE_H_ */

@@ -25,6 +25,7 @@
 #include "SWGTag.h"
 #include <QList>
 #include <QString>
+#include <QDebug>
 #include <QSharedDataPointer>
 
 
@@ -37,7 +38,7 @@ class SWGPet {
     Q_PROPERTY(qint64 id READ id)
     Q_PROPERTY(SWGCategory category READ category)
     Q_PROPERTY(QString name READ name)
-    Q_PROPERTY(QList<QString> photo_urls READ photoUrls)
+    Q_PROPERTY(QList<QString> photoUrls READ photoUrls)
     Q_PROPERTY(QList<SWGTag> tags READ tags)
     Q_PROPERTY(QString status READ status)
 public:
@@ -46,6 +47,8 @@ public:
     ~SWGPet();
 
     SWGPet &operator =(const SWGPet &other);
+
+    bool operator ==(const SWGPet &cmp) const;
 
     qint64 id() const;
     void setId(const qint64 &id);
@@ -57,7 +60,7 @@ public:
     void setName(const QString &name);
 
     QList<QString> photoUrls() const;
-    void setPhotoUrls(const QList<QString> &photo_urls);
+    void setPhotoUrls(const QList<QString> &photoUrls);
 
     QList<SWGTag> tags() const;
     void setTags(const QList<SWGTag> &tags);
@@ -69,7 +72,9 @@ private:
     QSharedDataPointer<SWGPetData> d;
 };
 
-}
+QDebug operator <<(QDebug stream, const SWGPet &obj);
+
+} // namespace Swagger
 
 Q_DECLARE_TYPEINFO(Swagger::SWGPet, Q_MOVABLE_TYPE);
 Q_DECLARE_METATYPE(Swagger::SWGPet)
