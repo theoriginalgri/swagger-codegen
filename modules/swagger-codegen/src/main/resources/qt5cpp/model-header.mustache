@@ -36,6 +36,8 @@ public:
 
     bool operator ==(const {{classname}} &cmp) const;
 
+    QVariantMap toMap(bool *ok = nullptr) const;
+
     {{#vars}}
     {{{datatype}}} {{getter}}() const;
     void {{setter}}(const {{{datatype}}} &{{getter}});
