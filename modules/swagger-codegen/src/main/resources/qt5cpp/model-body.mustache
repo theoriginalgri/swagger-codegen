@@ -4,6 +4,7 @@
 #include "{{classname}}_p.h"
 
 #include <QDataStream>
+#include <QCoreApplication>
 
 {{#cppNamespaceDeclarations}}
 namespace {{this}} {
@@ -12,13 +13,11 @@ namespace {{this}} {
 {{classname}}::{{classname}}()
 : d(new {{classname}}Data)
 {
-    QMetaType::registerConverter(&{{classname}}::toMap);
 }
 
 {{classname}}::{{classname}}(const {{classname}} &other)
 : d(other.d)
 {
-    QMetaType::registerConverter(&{{classname}}::toMap);
 }
 
 {{classname}}::~{{classname}}()
@@ -102,6 +101,13 @@ QDebug operator <<(QDebug stream, const {{classname}} &obj)
 
     return stream;
 }
+
+static void registerConverters()
+{
+    QMetaType::registerConverter(&{{classname}}::toMap);
+}
+
+Q_COREAPP_STARTUP_FUNCTION(registerConverters)
 
 {{#cppNamespaceDeclarations}}
 } // namespace {{this}}
