@@ -5,9 +5,11 @@
 {{#imports}}{{{import}}}
 {{/imports}}
 #include "Promise.h"
+#include "SwaggerConfig.h"
 
 #include <QObject>
 #include <QSharedPointer>
+#include <QNetworkReply>
 
 {{#cppNamespaceDeclarations}}
 namespace {{this}} {
