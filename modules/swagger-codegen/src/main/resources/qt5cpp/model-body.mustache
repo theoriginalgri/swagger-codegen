@@ -67,6 +67,17 @@ void {{classname}}::{{setter}}(const {{{datatype}}} &{{getter}})
     d->{{getter}} = {{getter}};
 }
 
+{{#isContainer}}
+void {{classname}}::append_{{getter}}(const {{{complexType}}} &{{getter}})
+{
+    d->{{getter}}.append({{getter}});
+}
+
+int {{classname}}::remove_{{getter}}(const {{{complexType}}} &{{getter}})
+{
+    return d->{{getter}}.removeAll({{getter}});
+}
+{{/isContainer}}
 {{/vars}}
 QDataStream &operator <<(QDataStream &out, const {{classname}} &obj)
 {
