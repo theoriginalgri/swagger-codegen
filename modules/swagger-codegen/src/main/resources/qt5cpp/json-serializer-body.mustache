@@ -86,7 +86,10 @@ QJsonValue JsonSerializer::toJson(const QByteArray &byteArray)
 
 QJsonValue JsonSerializer::toJson(const QUuid &uuid)
 {
-    return uuid.toString();
+    QString uuidString = uuid.toString();
+    uuidString.remove(0, 1);
+    uuidString.remove(uuidString.length() - 1, 1);
+    return uuidString;
 }
 
 QJsonValue JsonSerializer::toJson(const QVariant &variant)
