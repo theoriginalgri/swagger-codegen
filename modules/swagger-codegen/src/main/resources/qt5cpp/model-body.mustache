@@ -116,6 +116,9 @@ QDebug operator <<(QDebug stream, const {{classname}} &obj)
 static void registerConverters()
 {
     QMetaType::registerConverter(&{{classname}}::toMap);
+
+    // Also register without namespaces
+    qRegisterMetaType<{{classname}}>("{{classname}}");
 }
 
 Q_COREAPP_STARTUP_FUNCTION(registerConverters)
