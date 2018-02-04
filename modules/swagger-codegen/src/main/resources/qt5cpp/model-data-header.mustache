@@ -27,6 +27,7 @@ public:
 
     {{classname}}Data(const {{classname}}Data &other)
     : QSharedData(other)
+    , _q_properties(other._q_properties)
     {{#vars}}
     , {{getter}}(other.{{getter}})
     {{/vars}}
