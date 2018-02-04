@@ -40,6 +40,8 @@ public:
     void setProperty(const QString &name, const QVariant &value);
     QVariant property(const QString &name) const;
 
+    bool isSet(const QString &name) const;
+
     QVariantMap toMap(bool *ok = nullptr) const;
 
     // Getters and setters

@@ -57,6 +57,11 @@ QVariant {{classname}}::property(const QString &name) const
     return d->_q_properties.value(name);
 }
 
+bool {{classname}}::isSet(const QString &name) const
+{
+    return d->setFields.value(name, false);
+}
+
 QVariantMap {{classname}}::toMap(bool *ok) const
 {
     if (ok) {
@@ -78,6 +83,7 @@ QVariantMap {{classname}}::toMap(bool *ok) const
 
 void {{classname}}::{{setter}}(const {{{datatype}}} &{{getter}})
 {
+    d->setFields.insert("{{name}}", true);
     d->{{getter}} = {{getter}};
 }
 

@@ -28,6 +28,7 @@ public:
     {{classname}}Data(const {{classname}}Data &other)
     : QSharedData(other)
     , _q_properties(other._q_properties)
+    , setFields(other.setFields)
     {{#vars}}
     , {{getter}}(other.{{getter}})
     {{/vars}}
@@ -37,7 +38,10 @@ public:
     ~{{classname}}Data() {
     }
 
+    // Dynamic properties go here
     QVariantMap _q_properties;
+    
+    QMap<QString, bool> setFields;
 
     {{#vars}}
     {{{datatype}}} {{getter}};
