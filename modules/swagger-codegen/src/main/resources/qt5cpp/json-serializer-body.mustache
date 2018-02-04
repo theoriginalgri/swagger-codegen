@@ -22,7 +22,15 @@ QJsonObject JsonSerializer::toJson(const {{classname}} &value)
 {
     QJsonObject obj;
     {{#vars}}
-    obj.insert("{{name}}", toJson(value.{{getter}}()));{{#required}} // required{{/required}}
+    {{^required}}
+    if (value.isSet("{{name}}")) {
+        obj.insert("{{name}}", toJson(value.{{getter}}())); // optional
+    }
+    {{/required}}
+    {{#required}}
+    obj.insert("{{name}}", toJson(value.{{getter}}())); // required
+    {{/required}}
+    
     {{/vars}}
     return obj;
 }
