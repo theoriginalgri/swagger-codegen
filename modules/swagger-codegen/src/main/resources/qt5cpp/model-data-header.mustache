@@ -36,6 +36,8 @@ public:
     ~{{classname}}Data() {
     }
 
+    QVariantMap _q_properties;
+
     {{#vars}}
     {{{datatype}}} {{getter}};
     {{/vars}}

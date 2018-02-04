@@ -37,6 +37,9 @@ public:
 
     bool operator ==(const {{classname}} &cmp) const;
 
+    void setProperty(const QString &name, const QVariant &value);
+    QVariant property(const QString &name) const;
+
     QVariantMap toMap(bool *ok = nullptr) const;
 
     // Getters and setters
@@ -49,7 +52,6 @@ public:
     {{#vars}}{{#isContainer}}
     Q_INVOKABLE void append_{{getter}}(const {{{complexType}}} &{{getter}});
     Q_INVOKABLE int remove_{{getter}}(const {{{complexType}}} &{{getter}});
-
     {{/isContainer}}{{/vars}}
 private:
     QSharedDataPointer<{{classname}}Data> d;
@@ -58,7 +60,6 @@ private:
 QDataStream &operator <<(QDataStream &out, const {{classname}} &obj);
 QDataStream &operator >>(QDataStream &in, {{classname}} &obj);
 QDebug operator <<(QDebug stream, const {{classname}} &obj);
-
 {{#cppNamespaceDeclarations}}
 } // namespace {{this}}
 {{/cppNamespaceDeclarations}}

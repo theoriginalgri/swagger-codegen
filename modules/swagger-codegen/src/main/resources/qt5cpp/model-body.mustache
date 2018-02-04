@@ -43,13 +43,27 @@ bool {{classname}}::operator ==(const {{classname}} &cmp) const
     );
 }
 
+void {{classname}}::setProperty(const QString &name, const QVariant &value)
+{
+    if (value.isNull()) {
+        d->_q_properties.remove(name);
+    } else {
+        d->_q_properties.insert(name, value);
+    }
+}
+
+QVariant {{classname}}::property(const QString &name) const
+{
+    return d->_q_properties.value(name);
+}
+
 QVariantMap {{classname}}::toMap(bool *ok) const
 {
     if (ok) {
         *ok = true;
     }
 
-    QVariantMap map;
+    QVariantMap map(d->_q_properties);
     {{#vars}}
     map.insert("{{name}}", QVariant::fromValue(d->{{getter}}));
     {{/vars}}
