@@ -128,13 +128,16 @@ Promise<{{nickname}}Reply> {{classname}}::{{nickname}}({{#allParams}}const {{{da
     Promise<{{nickname}}Reply> *promise = new Promise<{{nickname}}Reply>;
 
     connect(reply, &QNetworkReply::finished, [=](){
+        int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+
         JsonSerializer serializer;
         {{nickname}}Reply response;
         response.httpResponse = reply;
+        response.statusCode = statusCode;
 
         // TODO: Error handling
         if (reply->error() != QNetworkReply::NoError) {
-            promise->reject();
+            promise->resolve(response);
 
             qDebug() << "HTTP error:" << reply->errorString() << reply->readAll();
 
@@ -151,7 +154,7 @@ Promise<{{nickname}}Reply> {{classname}}::{{nickname}}({{#allParams}}const {{{da
             doc = QJsonDocument::fromJson(data, &error);
 
             if (error.error != QJsonParseError::NoError) {
-                promise->reject();
+                promise->resolve(response);
 
                 qDebug() << "JSON parse error:" << error.errorString();
 
@@ -161,8 +164,6 @@ Promise<{{nickname}}Reply> {{classname}}::{{nickname}}({{#allParams}}const {{{da
             }
         }
 
-        int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
-        response.statusCode = statusCode;
         switch(statusCode) {
         {{#responses}}
         {{#isDefault}}

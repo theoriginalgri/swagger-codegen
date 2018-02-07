@@ -14,7 +14,7 @@ namespace {{this}} {
 template <typename... T>
 struct PromiseData {
     QList<std::function<void (T...)> > thens;
-    QList<std::function<void ()> > errors;
+    //QList<std::function<void ()> > errors;
 
     void resolve(T... args) {
         for(auto fnc : thens) {
@@ -22,11 +22,13 @@ struct PromiseData {
         }
     }
 
+    /*
     void reject() {
         for(auto fnc : errors) {
             fnc();
         }
     }
+    */
 };
 
 template <typename... T>
@@ -42,20 +44,24 @@ public:
         return *this;
     }
 
+    /*
     Promise &then(std::function<void (T...)> fnc, std::function<void ()> errorHandler) {
         m_data->thens << fnc;
         m_data->errors << errorHandler;
 
         return *this;
     }
+    */
 
     void resolve(T... value) {
         m_data->resolve(value...);
     }
 
+    /*
     void reject() {
         m_data->reject();
     }
+    */
 
 private:
     QSharedPointer<PromiseData<T...> > m_data;
