@@ -139,6 +139,9 @@ static void registerConverters()
 
     // Also register without namespaces
     qRegisterMetaType<{{classname}}>("{{classname}}");
+
+    // Register stream operators
+    qRegisterMetaTypeStreamOperators<{{classname}}>("{{classname}}");
 }
 
 Q_COREAPP_STARTUP_FUNCTION(registerConverters)
