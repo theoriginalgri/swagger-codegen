@@ -45,12 +45,14 @@ SwaggerConfig *{{classname}}::config() const
 {{#operations}}
 {{#operation}}
 Promise<{{nickname}}Reply> {{classname}}::{{nickname}}({{#allParams}}const {{{dataType}}} &{{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}}) {
+    JsonSerializer serializer;
+    
     QUrl url(m_config->url());
     QString fullPath = url.path() + "{{path}}";
 
     {{#pathParams}}
     {{=<% %>=}}
-    fullPath.replace("{<%baseName%>}", QVariant::fromValue(<%paramName%>).toString());
+    fullPath.replace("{<%baseName%>}", serializer.toJson(<%paramName%>).toString());
     <%={{ }}=%>
     {{/pathParams}}
     url.setPath(fullPath);
@@ -58,7 +60,7 @@ Promise<{{nickname}}Reply> {{classname}}::{{nickname}}({{#allParams}}const {{{da
     QUrlQuery query(url);
     {{#queryParams}}
     {{^collectionFormat}}
-    query.addQueryItem("{{paramName}}", QVariant::fromValue({{paramName}}).toString());
+    query.addQueryItem("{{paramName}}", serializer.toJson({{paramName}}).toString());
     {{/collectionFormat}}
     {{#collectionFormat}}
     query.addQueryItem("{{paramName}}", formatCollectionParameter({{paramName}}, "{{collectionFormat}}"));
@@ -82,14 +84,13 @@ Promise<{{nickname}}Reply> {{classname}}::{{nickname}}({{#allParams}}const {{{da
     NetworkHelper helper;
     {{#formParams}}
     {{^isFile}}
-    helper.addVar("{{baseName}}", QVariant::fromValue({{paramName}}).toString());
+    helper.addVar("{{baseName}}", serializer.toJson({{paramName}}).toString());
     {{/isFile}}
     {{#isFile}}
     helper.addFile("{{baseName}}", {{paramName}});
     {{/isFile}}
     {{/formParams}}
 
-    JsonSerializer serializer;
     QJsonDocument doc;
     {{#bodyParams}}
     {{#isContainer}}
