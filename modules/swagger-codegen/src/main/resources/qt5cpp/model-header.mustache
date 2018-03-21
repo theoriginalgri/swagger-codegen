@@ -45,9 +45,9 @@ public:
     QVariantMap toMap(bool *ok = nullptr) const;
 
     // Getters and setters
-    {{#vars}}
-    {{{datatype}}} {{getter}}() const;
-    void {{setter}}(const {{{datatype}}} &{{getter}});
+    {{#vars}}{{#description}}/// {{description}}{{/description}}
+    {{{datatype}}} {{getter}}() const;{{#required}} // required{{/required}}
+    void {{setter}}(const {{{datatype}}} &{{getter}});{{#required}} // required{{/required}}
 
     {{/vars}}
 
