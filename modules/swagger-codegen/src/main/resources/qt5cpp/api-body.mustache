@@ -101,7 +101,7 @@ Promise<{{nickname}}Reply> {{classname}}::{{nickname}}({{#allParams}}const {{{da
     {{/isContainer}}{{/bodyParams}}
 
     // Set post content
-    helper.setData(doc.toJson());
+    helper.setData(doc.toJson(QJsonDocument::Compact));
 
     {{#headerParams}}
     {{#isContainer}}
