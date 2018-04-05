@@ -21,6 +21,7 @@ struct {{nickname}}Reply
 {
     QNetworkReply *httpResponse = nullptr;
     int statusCode = 0;
+    bool aborted = false;
 
 {{#responses}}
     {{#dataType}}

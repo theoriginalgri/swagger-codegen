@@ -136,6 +136,19 @@ Promise<{{nickname}}Reply> {{classname}}::{{nickname}}({{#allParams}}const {{{da
         response.httpResponse = reply;
         response.statusCode = statusCode;
 
+        // Aborted
+        if (!reply->isOpen()) {
+            response.aborted = true;
+
+            promise->resolve(response);
+
+            qDebug() << "HTTP request aborted";
+
+            reply->deleteLater();
+            delete promise;
+            return;
+        }
+
         // TODO: Error handling
         if (reply->error() != QNetworkReply::NoError) {
             promise->resolve(response);
