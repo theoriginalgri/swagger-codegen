@@ -37,6 +37,8 @@ bool {{classname}}::operator ==(const {{classname}} &cmp) const
     }
 
     return (
+        d->_q_properties == cmp.d->_q_properties &&
+        d->setFields == cmp.d->setFields &&
         {{#vars}}
         d->{{getter}} == cmp.d->{{getter}}{{#hasMore}} &&{{/hasMore}}
         {{/vars}}

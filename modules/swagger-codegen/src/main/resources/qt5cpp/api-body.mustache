@@ -128,7 +128,7 @@ Promise<{{nickname}}Reply> {{classname}}::{{nickname}}({{#allParams}}const {{{da
 
     Promise<{{nickname}}Reply> *promise = new Promise<{{nickname}}Reply>;
 
-    connect(reply, &QNetworkReply::finished, [=](){
+    connect(reply, &QNetworkReply::finished, this, [=](){
         int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
 
         JsonSerializer serializer;
@@ -153,7 +153,7 @@ Promise<{{nickname}}Reply> {{classname}}::{{nickname}}({{#allParams}}const {{{da
         if (reply->error() != QNetworkReply::NoError) {
             promise->resolve(response);
 
-            qDebug() << "HTTP error:" << reply->errorString() << reply->readAll();
+            qDebug() << "HTTP error:" << reply->errorString();
 
             reply->deleteLater();
             delete promise;
