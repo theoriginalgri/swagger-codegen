@@ -23,6 +23,10 @@ public:
 {{#models}}{{#model}}{{#hasVars}}
     virtual QJsonObject toJson(const {{classname}} &value);
     virtual bool fromJson({{classname}} *dst, const QJsonValue &json);
+    {{#vars}}{{#isEnum}}
+    virtual QJsonValue toJson({{classname}}::{{enumName}} value);
+    virtual bool fromJson({{classname}}::{{enumName}} *dst, const QJsonValue &json);
+    {{/isEnum}}{{/vars}}
 {{/hasVars}}{{/model}}{{/models}}
     // Builtin types
     virtual QJsonValue toJson(const QString &string);

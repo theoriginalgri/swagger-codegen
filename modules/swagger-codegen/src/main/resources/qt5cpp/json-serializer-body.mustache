@@ -44,12 +44,52 @@ bool JsonSerializer::fromJson({{classname}} *dst, const QJsonValue &json)
     dst->{{setter}}(fromJson<{{{complexType}}}>(obj.value("{{name}}").toArray()));
     {{/isContainer}}
     {{^isContainer}}
+    {{#isEnum}}
+    dst->{{setter}}(fromJson<{{classname}}::{{enumName}}>(obj.value("{{name}}")));
+    {{/isEnum}}
+    {{^isEnum}}
     dst->{{setter}}(fromJson<{{datatype}}>(obj.value("{{name}}")));
+    {{/isEnum}}
     {{/isContainer}}
     {{/vars}}
 
     return true;
 }
+
+{{#vars}}{{#isEnum}}
+QJsonValue JsonSerializer::toJson({{classname}}::{{enumName}} value)
+{
+    switch(value) {
+    {{#allowableValues}}
+    {{#enumVars}}
+    case {{classname}}::{{{name}}}:
+        return {{{value}}};
+    {{/enumVars}}
+    {{/allowableValues}}
+    default:
+        return QJsonValue();
+    }
+}
+
+bool JsonSerializer::fromJson({{classname}}::{{enumName}} *dst, const QJsonValue &json)
+{
+    QMap<{{datatype}}, {{classname}}::{{enumName}}> map;
+    {{#allowableValues}}
+    {{#enumVars}}
+    map.insert({{{value}}}, {{classname}}::{{{name}}});
+    {{/enumVars}}
+    {{/allowableValues}}
+
+    {{#isNumeric}}
+    *dst = map.value(json.toInt());
+    {{/isNumeric}}
+    {{^isNumeric}}
+    *dst = map.value(json.toString());
+    {{/isNumeric}}
+
+    return true;
+}
+{{/isEnum}}{{/vars}}
 {{/hasVars}}{{/model}}{{/models}}
 
 QJsonValue JsonSerializer::toJson(const QString &string)

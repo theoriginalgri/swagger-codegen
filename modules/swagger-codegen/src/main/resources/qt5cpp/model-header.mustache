@@ -26,13 +26,29 @@ class {{classname}}Data;
 class {{classname}} {
     Q_GADGET
     {{#vars}}
+    {{#isEnum}}
+    Q_PROPERTY({{enumName}} {{name}} READ {{getter}} WRITE {{setter}})
+    {{/isEnum}}
+    {{^isEnum}}
     Q_PROPERTY({{{datatype}}} {{name}} READ {{getter}} WRITE {{setter}})
+    {{/isEnum}}
     {{/vars}}
 
 public:
     {{classname}}();
     {{classname}}(const {{classname}} &other);
     ~{{classname}}();
+
+    {{#vars}}{{#isEnum}}
+    enum {{enumName}} {
+        {{#allowableValues}}
+        {{#enumVars}}
+        {{{name}}}{{^-last}},{{/-last}}
+        {{/enumVars}}
+        {{/allowableValues}}
+    };
+    Q_ENUM({{enumName}})
+    {{/isEnum}}{{/vars}}
 
     {{classname}} &operator =(const {{classname}} &other);
 
@@ -47,8 +63,14 @@ public:
 
     // Getters and setters
     {{#vars}}{{#description}}/// {{description}}{{/description}}
+    {{#isEnum}}
+    {{{enumName}}} {{getter}}() const;{{#required}} // required{{/required}}
+    void {{setter}}(const {{{enumName}}} &{{getter}});{{#required}} // required{{/required}}
+    {{/isEnum}}
+    {{^isEnum}}
     {{{datatype}}} {{getter}}() const;{{#required}} // required{{/required}}
     void {{setter}}(const {{{datatype}}} &{{getter}});{{#required}} // required{{/required}}
+    {{/isEnum}}
 
     {{/vars}}
 
@@ -62,6 +84,12 @@ private:
 
 QDataStream &operator <<(QDataStream &out, const {{classname}} &obj);
 QDataStream &operator >>(QDataStream &in, {{classname}} &obj);
+{{#vars}}
+{{#isEnum}}
+QDataStream &operator <<(QDataStream &out, {{classname}}::{{enumName}} value);
+QDataStream &operator >>(QDataStream &in, {{classname}}::{{enumName}} &value);
+{{/isEnum}}
+{{/vars}}
 QDebug operator <<(QDebug stream, const {{classname}} &obj);
 {{/hasVars}}
 {{^hasVars}}

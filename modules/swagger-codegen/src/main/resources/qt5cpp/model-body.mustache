@@ -79,6 +79,19 @@ QVariantMap {{classname}}::toMap(bool *ok) const
 }
 
 {{#vars}}
+{{#isEnum}}
+{{classname}}::{{{enumName}}} {{classname}}::{{getter}}() const
+{
+    return d->{{getter}};
+}
+
+void {{classname}}::{{setter}}(const {{{enumName}}} &{{getter}})
+{
+    d->setFields.insert("{{name}}", true);
+    d->{{getter}} = {{getter}};
+}
+{{/isEnum}}
+{{^isEnum}}
 {{{datatype}}} {{classname}}::{{getter}}() const
 {
     return d->{{getter}};
@@ -89,6 +102,7 @@ void {{classname}}::{{setter}}(const {{{datatype}}} &{{getter}})
     d->setFields.insert("{{name}}", true);
     d->{{getter}} = {{getter}};
 }
+{{/isEnum}}
 
 {{#isContainer}}
 void {{classname}}::append_{{getter}}(const {{{complexType}}} &{{getter}})
@@ -112,10 +126,15 @@ QDataStream &operator <<(QDataStream &out, const {{classname}} &obj)
 QDataStream &operator >>(QDataStream &in, {{classname}} &obj)
 {
     {{#vars}}
+    {{#isEnum}}
+    {{classname}}::{{{enumName}}} {{getter}};
+    {{/isEnum}}
+    {{^isEnum}}
     {{{datatype}}} {{getter}};
+    {{/isEnum}}
     in >> {{getter}};
     {{/vars}}
-    
+
     {{#vars}}
     obj.{{setter}}({{getter}});
     {{/vars}}
@@ -135,6 +154,28 @@ QDebug operator <<(QDebug stream, const {{classname}} &obj)
 
     return stream;
 }
+
+{{#vars}}
+{{#isEnum}}
+QDataStream &operator <<(QDataStream &out, {{classname}}::{{enumName}} value)
+{
+    out << static_cast<qint32>(value);
+
+    return out;
+}
+
+QDataStream &operator >>(QDataStream &in, {{classname}}::{{enumName}} &value)
+{
+    qint32 intValue;
+    in >> intValue;
+
+    value = static_cast<{{classname}}::{{{enumName}}}>(intValue);
+
+    return in;
+}
+
+{{/isEnum}}
+{{/vars}}
 
 static void registerConverters()
 {

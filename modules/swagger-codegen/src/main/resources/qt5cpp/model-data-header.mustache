@@ -11,6 +11,8 @@
 {{/model}}{{/models}}
 {{#imports}}{{{import}}}
 {{/imports}}
+#include "{{classname}}.h"
+
 #include <QSharedData>
 
 {{#models}}{{#model}}
@@ -44,7 +46,12 @@ public:
     QMap<QString, bool> setFields;
 
     {{#vars}}
+    {{#isEnum}}
+    {{classname}}::{{{enumName}}} {{getter}};
+    {{/isEnum}}
+    {{^isEnum}}
     {{{datatype}}} {{getter}};
+    {{/isEnum}}
     {{/vars}}
 };
 
