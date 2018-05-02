@@ -17,7 +17,7 @@ JsonSerializer::~JsonSerializer()
 {
 }
 
-{{#models}}{{#model}}
+{{#models}}{{#model}}{{#hasVars}}
 QJsonObject JsonSerializer::toJson(const {{classname}} &value)
 {
     QJsonObject obj;
@@ -50,7 +50,7 @@ bool JsonSerializer::fromJson({{classname}} *dst, const QJsonValue &json)
 
     return true;
 }
-{{/model}}{{/models}}
+{{/hasVars}}{{/model}}{{/models}}
 
 QJsonValue JsonSerializer::toJson(const QString &string)
 {

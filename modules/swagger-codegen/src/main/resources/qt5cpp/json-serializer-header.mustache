@@ -20,10 +20,10 @@ class JsonSerializer
 public:
     JsonSerializer();
     virtual ~JsonSerializer();
-{{#models}}{{#model}}
+{{#models}}{{#model}}{{#hasVars}}
     virtual QJsonObject toJson(const {{classname}} &value);
     virtual bool fromJson({{classname}} *dst, const QJsonValue &json);
-{{/model}}{{/models}}
+{{/hasVars}}{{/model}}{{/models}}
     // Builtin types
     virtual QJsonValue toJson(const QString &string);
     virtual QJsonValue toJson(const qint32 &number);

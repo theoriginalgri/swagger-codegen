@@ -10,6 +10,7 @@
 namespace {{this}} {
 {{/cppNamespaceDeclarations}}
 
+{{#hasVars}}
 {{classname}}::{{classname}}()
 : d(new {{classname}}Data)
 {
@@ -147,6 +148,7 @@ static void registerConverters()
 }
 
 Q_COREAPP_STARTUP_FUNCTION(registerConverters)
+{{/hasVars}}
 
 {{#cppNamespaceDeclarations}}
 } // namespace {{this}}

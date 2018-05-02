@@ -20,6 +20,7 @@
 namespace {{this}} {
 {{/cppNamespaceDeclarations}}
 
+{{#hasVars}}
 class {{classname}}Data;
 
 class {{classname}} {
@@ -62,12 +63,20 @@ private:
 QDataStream &operator <<(QDataStream &out, const {{classname}} &obj);
 QDataStream &operator >>(QDataStream &in, {{classname}} &obj);
 QDebug operator <<(QDebug stream, const {{classname}} &obj);
+{{/hasVars}}
+{{^hasVars}}
+{{#dataType}}typedef {{{dataType}}} {{classname}};{{/dataType}}
+{{^dataType}}typedef QVariant {{classname}};{{/dataType}}
+{{/hasVars}}
+
 {{#cppNamespaceDeclarations}}
 } // namespace {{this}}
 {{/cppNamespaceDeclarations}}
 
+{{#hasVars}}
 Q_DECLARE_TYPEINFO(Swagger::{{classname}}, Q_MOVABLE_TYPE);
 Q_DECLARE_METATYPE(Swagger::{{classname}})
+{{/hasVars}}
 
 #endif /* {{classname}}_H_ */
 {{/model}}
