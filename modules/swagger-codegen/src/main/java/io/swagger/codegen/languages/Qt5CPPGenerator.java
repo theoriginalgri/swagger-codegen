@@ -239,8 +239,10 @@ public class Qt5CPPGenerator extends AbstractCppCodegen implements CodegenConfig
     @Override
     public CodegenProperty fromProperty(String name, Property p) {
         CodegenProperty property =  super.fromProperty(name, p);
-        // We don't want the "get" prefix with Qt
-        property.getter = camelize(toVarName(name), true);
+        if (property != null) {
+            // We don't want the "get" prefix with Qt
+            property.getter = camelize(toVarName(name), true);
+        }
         return property;
     }
 
@@ -382,6 +384,11 @@ public class Qt5CPPGenerator extends AbstractCppCodegen implements CodegenConfig
 
     @Override
     public String toModelName(String type) {
+        // item: {} leads to a nullpointer
+        if (type == null) {
+            return "QVariant";
+        }
+
         if (typeMapping.keySet().contains(type) ||
                 typeMapping.values().contains(type) ||
                 importMapping.values().contains(type) ||

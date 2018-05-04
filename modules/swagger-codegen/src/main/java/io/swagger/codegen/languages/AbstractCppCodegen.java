@@ -157,13 +157,15 @@ abstract public class AbstractCppCodegen extends DefaultCodegen implements Codeg
     @Override
     public CodegenProperty fromProperty(String name, Property p) {
         CodegenProperty property = super.fromProperty(name, p);
-        String nameInCamelCase = property.nameInCamelCase;
-        if (nameInCamelCase.length() > 1) {
-            nameInCamelCase = sanitizeName(Character.toLowerCase(nameInCamelCase.charAt(0)) + nameInCamelCase.substring(1));
-        } else {
-            nameInCamelCase = sanitizeName(nameInCamelCase);
+        if (property != null) {
+            String nameInCamelCase = property.nameInCamelCase;
+            if (nameInCamelCase.length() > 1) {
+                nameInCamelCase = sanitizeName(Character.toLowerCase(nameInCamelCase.charAt(0)) + nameInCamelCase.substring(1));
+            } else {
+                nameInCamelCase = sanitizeName(nameInCamelCase);
+            }
+            property.nameInCamelCase = nameInCamelCase;
         }
-        property.nameInCamelCase = nameInCamelCase;
         return property;
     }
 }

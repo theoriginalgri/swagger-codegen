@@ -2938,11 +2938,13 @@ public class DefaultCodegen {
     private static List<CodegenParameter> addHasMore(List<CodegenParameter> objs) {
         if (objs != null) {
             for (int i = 0; i < objs.size(); i++) {
+                CodegenParameter p = objs.get(i);
+
                 if (i > 0) {
-                    objs.get(i).secondaryParam = true;
+                    p.secondaryParam = true;
                 }
                 if (i < objs.size() - 1) {
-                    objs.get(i).hasMore = true;
+                    p.hasMore = true;
                 }
             }
         }
