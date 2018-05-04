@@ -48,7 +48,13 @@ public:
     void setConfig(SwaggerConfig *config);
     SwaggerConfig *config() const;
 
-    {{#operations}}{{#operation}}Promise<{{nickname}}Reply> {{nickname}}({{#allParams}}const {{{dataType}}} &{{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}});
+    {{#operations}}{{#operation}}
+    /// \fn {{classname}}::{{nickname}}
+    /// {{{notes}}}
+    {{#allParams}}
+    /// \param {{paramName}} {{{description}}}
+    {{/allParams}}
+    Promise<{{nickname}}Reply> {{nickname}}({{#allParams}}const {{{dataType}}} &{{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}});
     {{/operation}}{{/operations}}
 
 private:
