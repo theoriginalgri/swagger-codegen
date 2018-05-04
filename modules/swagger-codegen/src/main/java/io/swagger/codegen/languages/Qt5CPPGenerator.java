@@ -295,7 +295,7 @@ public class Qt5CPPGenerator extends AbstractCppCodegen implements CodegenConfig
 
     @Override
     public String toModelFilename(String name) {
-        return PREFIX + initialCaps(name);
+        return toModelName(name);
     }
 
     @Override
@@ -382,6 +382,24 @@ public class Qt5CPPGenerator extends AbstractCppCodegen implements CodegenConfig
         return toModelName(type);
     }
 
+    public static String underscore_qt(String word) {
+        String firstPattern = "([A-Z]+)([A-Z][a-z])";
+        String secondPattern = "([a-z\\d])([A-Z])";
+        String replacementPattern = "$1_$2";
+        // Replace package separator with slash.
+        word = word.replaceAll("\\.", "_"); // FIXME: a parameter should not be assigned. Also declare the methods parameters as 'final'.
+        // Replace $ with two underscores for inner classes.
+        word = word.replaceAll("\\$", "__");
+        // Replace capital letter with _ plus lowercase letter.
+        //word = word.replaceAll(firstPattern, replacementPattern);
+        //word = word.replaceAll(secondPattern, replacementPattern);
+        word = word.replace('-', '_');
+        // replace space with underscore
+        word = word.replace(' ', '_');
+        //word = word.toLowerCase();
+        return word;
+    }
+
     @Override
     public String toModelName(String type) {
         // item: {} leads to a nullpointer
@@ -396,7 +414,9 @@ public class Qt5CPPGenerator extends AbstractCppCodegen implements CodegenConfig
                 languageSpecificPrimitives.contains(type)) {
             return type;
         } else {
-            return PREFIX + Character.toUpperCase(type.charAt(0)) + type.substring(1);
+            String modelName = PREFIX + Character.toUpperCase(type.charAt(0)) + type.substring(1);
+            modelName = underscore_qt(modelName);
+            return modelName;
         }
     }
 
