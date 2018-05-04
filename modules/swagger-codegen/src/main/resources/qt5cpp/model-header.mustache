@@ -53,8 +53,8 @@ public:
     {{/vars}}
 
     {{#vars}}{{#isContainer}}
-    Q_INVOKABLE void append_{{getter}}(const {{{complexType}}} &{{getter}});
-    Q_INVOKABLE int remove_{{getter}}(const {{{complexType}}} &{{getter}});
+    Q_INVOKABLE void append_{{getter}}(const {{#complexType}}{{{complexType}}}{{/complexType}}{{^complexType}}QVariant{{/complexType}} &{{getter}});
+    Q_INVOKABLE int remove_{{getter}}(const {{#complexType}}{{{complexType}}}{{/complexType}}{{^complexType}}QVariant{{/complexType}} &{{getter}});
     {{/isContainer}}{{/vars}}
 private:
     QSharedDataPointer<{{classname}}Data> d;

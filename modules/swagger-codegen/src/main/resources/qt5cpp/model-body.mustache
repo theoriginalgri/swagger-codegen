@@ -91,12 +91,12 @@ void {{classname}}::{{setter}}(const {{{datatype}}} &{{getter}})
 }
 
 {{#isContainer}}
-void {{classname}}::append_{{getter}}(const {{{complexType}}} &{{getter}})
+void {{classname}}::append_{{getter}}(const {{#complexType}}{{{complexType}}}{{/complexType}}{{^complexType}}QVariant{{/complexType}} &{{getter}})
 {
     d->{{getter}}.append({{getter}});
 }
 
-int {{classname}}::remove_{{getter}}(const {{{complexType}}} &{{getter}})
+int {{classname}}::remove_{{getter}}(const {{#complexType}}{{{complexType}}}{{/complexType}}{{^complexType}}QVariant{{/complexType}} &{{getter}})
 {
     return d->{{getter}}.removeAll({{getter}});
 }
