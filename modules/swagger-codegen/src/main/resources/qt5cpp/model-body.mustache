@@ -46,6 +46,11 @@ bool {{classname}}::operator ==(const {{classname}} &cmp) const
     );
 }
 
+bool {{classname}}::operator !=(const {{classname}} &cmp) const
+{
+    return !(*this == cmp);
+}
+
 void {{classname}}::setProperty(const QString &name, const QVariant &value)
 {
     if (value.isNull()) {

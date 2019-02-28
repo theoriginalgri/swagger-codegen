@@ -37,6 +37,7 @@ public:
     {{classname}} &operator =(const {{classname}} &other);
 
     bool operator ==(const {{classname}} &cmp) const;
+    bool operator !=(const {{classname}} &cmp) const;
 
     void setProperty(const QString &name, const QVariant &value);
     QVariant property(const QString &name) const;
