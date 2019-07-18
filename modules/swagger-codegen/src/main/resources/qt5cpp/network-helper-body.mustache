@@ -48,11 +48,13 @@ void NetworkHelper::setData(const QByteArray &data) {
 }
 
 QNetworkReply *NetworkHelper::execute(const QString &method, const QNetworkRequest &request, QNetworkAccessManager *mgr) {
+    QNetworkReply *reply = nullptr;
+
     if (method == "POST") {
         if (m_files.isEmpty()) {
             QByteArray params = m_data;
             // TODO: Percent encoding of parameters
-            return mgr->post(request, params);
+            reply = mgr->post(request, params);
         } else {
             QHttpMultiPart *multiPart = new QHttpMultiPart(QHttpMultiPart::FormDataType);
 
@@ -66,17 +68,20 @@ QNetworkReply *NetworkHelper::execute(const QString &method, const QNetworkReque
                 multiPart->append(filePart);
             }
 
-            return mgr->post(request, multiPart);
+            reply = mgr->post(request, multiPart);
+            multiPart->setParent(reply); // delete the multiPart with the reply
         }
     } else if (method == "GET") {
-        return mgr->get(request);
+        reply = mgr->get(request);
     } else if (method == "PUT") {
-        return mgr->put(request, m_data);
+        reply = mgr->put(request, m_data);
     } else if (method == "HEAD") {
-        return mgr->head(request);
+        reply = mgr->head(request);
     } else if (method == "DELETE") {
-        return mgr->deleteResource(request);
+        reply = mgr->deleteResource(request);
     }
 
-    return nullptr;
+    Q_ASSERT(mgr->thread() == reply->thread());
+
+    return reply;
 }
