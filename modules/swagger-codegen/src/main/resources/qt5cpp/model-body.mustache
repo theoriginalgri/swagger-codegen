@@ -98,11 +98,13 @@ void {{classname}}::{{setter}}(const {{{datatype}}} &{{getter}})
 {{#isContainer}}
 void {{classname}}::append_{{getter}}(const {{#complexType}}{{{complexType}}}{{/complexType}}{{^complexType}}QVariant{{/complexType}} &{{getter}})
 {
+    d->setFields.insert("{{name}}", true);
     d->{{getter}}.append({{getter}});
 }
 
 int {{classname}}::remove_{{getter}}(const {{#complexType}}{{{complexType}}}{{/complexType}}{{^complexType}}QVariant{{/complexType}} &{{getter}})
 {
+    d->setFields.insert("{{name}}", true);
     return d->{{getter}}.removeAll({{getter}});
 }
 {{/isContainer}}
