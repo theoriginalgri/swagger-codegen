@@ -5,6 +5,7 @@
 
 #include <QDataStream>
 #include <QCoreApplication>
+#include <QMetaProperty>
 
 {{#cppNamespaceDeclarations}}
 namespace {{this}} {
@@ -53,16 +54,32 @@ bool {{classname}}::operator !=(const {{classname}} &cmp) const
 
 void {{classname}}::setProperty(const QString &name, const QVariant &value)
 {
-    if (value.isNull()) {
-        d->_q_properties.remove(name);
+    int propertyIndex = staticMetaObject.indexOfProperty(name.toUtf8());
+    if (propertyIndex != -1) {
+        // Static property
+        QMetaProperty property = staticMetaObject.property(propertyIndex);
+        property.writeOnGadget(this, value);
     } else {
-        d->_q_properties.insert(name, value);
+        // Dynamic property
+        if (value.isNull()) {
+            d->_q_properties.remove(name);
+        } else {
+            d->_q_properties.insert(name, value);
+        }
     }
 }
 
 QVariant {{classname}}::property(const QString &name) const
 {
-    return d->_q_properties.value(name);
+    int propertyIndex = staticMetaObject.indexOfProperty(name.toUtf8());
+    if (propertyIndex != -1) {
+        // Static property
+        QMetaProperty property = staticMetaObject.property(propertyIndex);
+        return property.readOnGadget(this);
+    } else {
+        // Dynamic property
+        return d->_q_properties.value(name);
+    }
 }
 
 bool {{classname}}::isSet(const QString &name) const
